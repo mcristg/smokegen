@@ -101,22 +101,22 @@ int main(int argc, char** argv)
 
     QTextStream qOut(stdout);
     QList<Smoke*> smokeModules = parents.keys();
-    qSort(smokeModules.begin(), smokeModules.end(), smokeModuleLessThan);
+    std::sort(smokeModules.begin(), smokeModules.end(), smokeModuleLessThan);
     foreach(Smoke* smoke, smokeModules) {
         qDebug() << "parent modules for" << smoke->moduleName();
 
-        QList<Smoke*> sortedList = parents[smoke].toList();
-        qSort(sortedList.begin(), sortedList.end(), smokeModuleLessThan);
+        QList<Smoke*> sortedList = parents[smoke].values();
+        std::sort(sortedList.begin(), sortedList.end(), smokeModuleLessThan);
 
         if (generateXml) {
-            qOut << "    <parentModules>" << endl;
+            qOut << "    <parentModules>" << Qt::endl;
             foreach (Smoke* parent, sortedList) {
-                qOut << "        <module>" << parent->moduleName() << "</module>" << endl;
+                qOut << "        <module>" << parent->moduleName() << "</module>" << Qt::endl;
             }
-            qOut << "    </parentModules>" << endl;
+            qOut << "    </parentModules>" << Qt::endl;
         } else {
             foreach (Smoke* parent, sortedList) {
-                qOut << "  * " << parent->moduleName() << endl;
+                qOut << "  * " << parent->moduleName() << Qt::endl;
             }
         }
     }

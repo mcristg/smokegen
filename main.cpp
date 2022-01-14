@@ -244,8 +244,7 @@ int main(int argc, char **argv)
 
         clang::FileManager FM({"."});
         FM.Retain();
-
-        clang::tooling::ToolInvocation inv(Argv, new SmokegenFrontendAction, &FM);
+		clang::tooling::ToolInvocation inv(Argv, std::unique_ptr<clang::FrontendAction>(new SmokegenFrontendAction), &FM);
 
         const EmbeddedFile* f = EmbeddedFiles;
         while (f->filename) {

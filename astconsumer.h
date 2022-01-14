@@ -14,7 +14,7 @@ namespace clang {
 
 class SmokegenASTConsumer : public clang::ASTConsumer {
 public:
-    SmokegenASTConsumer(clang::CompilerInstance &ci) : ci(ci), Visitor(ci) {}
+    SmokegenASTConsumer(clang::CompilerInstance &ci) : Visitor(ci), ci(ci) {}
 
     virtual void Initialize(clang::ASTContext &ctx) override;
 
