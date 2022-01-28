@@ -24,6 +24,8 @@
 #include <QStack>
 #include <QDir>
 
+#include <QRegularExpression>
+
 #include <type.h>
 #include <smoke.h>
 
@@ -915,24 +917,27 @@ QList<const Method*> Util::virtualMethodsForClass(const Class* klass)
 
 bool Options::typeExcluded(const QString& typeName)
 {
-    foreach (const QRegExp& exp, Options::excludeExpressions) {
-        if (exp.exactMatch(typeName))
+    foreach (const QRegularExpression& exp, Options::excludeExpressions) {
+        if (exp.match(typeName,0,QRegularExpression::MatchType::NormalMatch,
+		              QRegularExpression::AnchoredMatchOption).hasMatch())
             return true;
     }
     return false;
 }
 
 bool Options::functionNameIncluded(const QString& fnName) {
-    foreach (const QRegExp& exp, Options::includeFunctionNames) {
-        if (exp.exactMatch(fnName))
+    foreach (const QRegularExpression& exp, Options::includeFunctionNames) {
+        if (exp.match(fnName,0,QRegularExpression::MatchType::NormalMatch,
+		              QRegularExpression::AnchoredMatchOption).hasMatch())
             return true;
     }
     return false;
 }
 
 bool Options::functionSignatureIncluded(const QString& sig) {
-    foreach (const QRegExp& exp, Options::includeFunctionNames) {
-        if (exp.exactMatch(sig))
+    foreach (const QRegularExpression& exp, Options::includeFunctionNames) {
+        if (exp.match(sig,0,QRegularExpression::MatchType::NormalMatch,
+		              QRegularExpression::AnchoredMatchOption).hasMatch())
             return true;
     }
     return false;

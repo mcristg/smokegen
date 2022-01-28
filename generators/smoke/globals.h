@@ -25,6 +25,8 @@
 #include <QString>
 #include <QStringList>
 
+#include <QRegularExpression>
+
 template<typename T>
 class QStack;
 
@@ -54,9 +56,9 @@ struct Options
     static QStringList classList;
     static bool qtMode;
     
-    static QList<QRegExp> excludeExpressions;
-    static QList<QRegExp> includeFunctionNames;
-    static QList<QRegExp> includeFunctionSignatures;
+    static QList<QRegularExpression> excludeExpressions;
+    static QList<QRegularExpression> includeFunctionNames;
+    static QList<QRegularExpression> includeFunctionSignatures;
     
     static bool typeExcluded(const QString& typeName);
     static bool functionNameIncluded(const QString& fnName);

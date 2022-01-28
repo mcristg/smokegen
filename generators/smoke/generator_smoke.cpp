@@ -26,6 +26,7 @@
 #include <QtDebug>
 
 #include <QtXml>
+#include <QRegularExpression>
 
 #include <iostream>
 
@@ -45,9 +46,9 @@ QDir Options::libDir;
 QStringList Options::scalarTypes;
 QStringList Options::voidpTypes;
 bool Options::qtMode = false;
-QList<QRegExp> Options::excludeExpressions;
-QList<QRegExp> Options::includeFunctionNames;
-QList<QRegExp> Options::includeFunctionSignatures;
+QList<QRegularExpression> Options::excludeExpressions;
+QList<QRegularExpression> Options::includeFunctionNames;
+QList<QRegularExpression> Options::includeFunctionSignatures;
 
 static void showUsage()
 {
@@ -184,7 +185,7 @@ int generate()
                         continue;
                     }
                     if (elem.tagName() == "signature") {
-                        Options::excludeExpressions << QRegExp(elem.text());
+                        Options::excludeExpressions << QRegularExpression(elem.text());
                     }
                     typeName = typeName.nextSibling();
                 }
@@ -197,9 +198,9 @@ int generate()
                         continue;
                     }
                     if (elem.tagName() == "name") {
-                        Options::includeFunctionNames << QRegExp(elem.text());
+                        Options::includeFunctionNames << QRegularExpression(elem.text());
                     } else if (elem.tagName() == "signature") {
-                        Options::includeFunctionSignatures << QRegExp(elem.text());
+                        Options::includeFunctionSignatures << QRegularExpression(elem.text());
                     }
                     function = function.nextSibling();
                 }

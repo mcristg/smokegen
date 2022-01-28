@@ -6,6 +6,8 @@
 #include "astvisitor.h"
 #include "defaultargvisitor.h"
 
+#include <QRegularExpression>
+
 bool SmokegenASTVisitor::VisitCXXRecordDecl(clang::CXXRecordDecl *D) {
     registerClass(D);
 
@@ -107,7 +109,7 @@ Parameter SmokegenASTVisitor::toParameter(const clang::ParmVarDecl* param) const
         std::string resolved = argVisitor.toString(defaultArgExpr);
         if (!resolved.empty()) {
             QString resolvedQString = QString::fromStdString(resolved);
-            resolvedQString = resolvedQString.replace(QRegExp("^=[\\s]*"), "");
+            resolvedQString = resolvedQString.replace(QRegularExpression("^=[\\s]*"), "");
             parameter.setDefaultValue(resolvedQString);
         }
     }

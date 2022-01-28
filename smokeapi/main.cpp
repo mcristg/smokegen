@@ -23,6 +23,8 @@
 
 #include <smoke.h>
 
+#include <QRegularExpression>
+
 static QTextStream qOut(stdout);
 
 typedef void (*InitSmokeFn)();
@@ -34,7 +36,7 @@ static bool showClassNamesOnly;
 static bool showParents;
 static bool matchPattern;
 static bool caseInsensitive;
-static QRegExp targetPattern;
+static QRegularExpression targetPattern;
 
 static Smoke* 
 loadSmokeModule(QString moduleName) {
@@ -145,8 +147,9 @@ static void
 showClass(const Smoke::ModuleIndex& classId, int indent)
 {
     if (showClassNamesOnly) {
-        QString className = QString::fromLatin1(classId.smoke->classes[classId.index].className);    
-        if (!matchPattern || targetPattern.indexIn(className) != -1) {
+        QString className = QString::fromLatin1(classId.smoke->classes[classId.index].className);
+        QRegularExpressionMatch match = targetPattern.match(className);		
+        if (!matchPattern || match.capturedStart() != -1) {
 			while (indent > 0) {
 				qOut << "  ";
 				indent--;
@@ -194,14 +197,16 @@ showClass(const Smoke::ModuleIndex& classId, int indent)
             Smoke::Index ix = smoke->methodMaps[i].method;
             if (ix >= 0) {  // single match
                 QString method = methodToString(Smoke::ModuleIndex(smoke, ix));
-                if (!matchPattern || targetPattern.indexIn(method) != -1) {
+                QRegularExpressionMatch match = targetPattern.match(method); 
+				if (!matchPattern || match.capturedStart() != -1) {
                     qOut << method << "\n";
                 }
             } else {        // multiple match
                 ix = -ix;       // turn into ambiguousMethodList index
                 while (smoke->ambiguousMethodList[ix]) {
                     QString method = methodToString(Smoke::ModuleIndex(smoke, smoke->ambiguousMethodList[ix]));
-                    if (!matchPattern || targetPattern.indexIn(method) != -1) {
+                    QRegularExpressionMatch match = targetPattern.match(method); 
+					if (!matchPattern || match.capturedStart() != -1) {
                         qOut << method << "\n";
                     }
                     
@@ -253,7 +258,7 @@ int main(int argc, char** argv)
         } else if (arguments[i] == QLatin1String("-m") || arguments[i] == QLatin1String("--match")) {
             i++;
             if (i < arguments.length()) {
-                targetPattern = QRegExp(arguments[i]);
+                targetPattern = QRegularExpression(arguments[i]);
                 matchPattern = true;
             }
             i++;
@@ -263,13 +268,13 @@ int main(int argc, char** argv)
     }
 
     if (caseInsensitive) {
-        targetPattern.setCaseSensitivity(Qt::CaseInsensitive);
+        targetPattern.setPatternOptions(QRegularExpression::PatternOption::CaseInsensitiveOption);
     }
     
     smokeModules << loadSmokeModule("qtcore");
     
     if (i >= arguments.length()) {
-        if (targetPattern.isEmpty()) {
+        if (targetPattern.pattern().isEmpty()) { 
             PRINT_USAGE();
             return 0;
         } else {
