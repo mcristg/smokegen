@@ -65,7 +65,11 @@ static const char Injected[] = R"-(
 #endif
 #define Q_PRIVATE_PROPERTY(d, text)  QT_ANNOTATE_CLASS2(qt_private_property, d, text)
 
-#define Q_REVISION(v)
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+# define Q_REVISION(u,v)
+#else
+# define Q_REVISION(v)
+#endif
 #define Q_ENUMS(x) QT_ANNOTATE_CLASS(qt_enums, x)
 #define Q_FLAGS(x) QT_ANNOTATE_CLASS(qt_flags, x)
 #define Q_ENUM_IMPL(ENUM) \

@@ -1,6 +1,6 @@
 project(smokeapi)
 
-find_package(Qt5Core REQUIRED)
+find_package(${QT_VERSION}Core REQUIRED)
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/.. )
 
 add_executable(smokeapi main.cpp)
@@ -12,6 +12,6 @@ if (WIN32)
 	endif()
 endif (WIN32)
 
-target_link_libraries(smokeapi smokebase Qt5::Core)
+target_link_libraries(smokeapi smokebase ${QT_VERSION}::Core)
 install(    TARGETS smokeapi 
             DESTINATION ${CMAKE_INSTALL_PREFIX}/bin )
