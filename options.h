@@ -20,6 +20,7 @@
 #define GENERATOR_OPTIONS_H
 
 #include "generator_export.h"
+#include <QStringList>
 
 class QDir;
 class QFileInfo;
@@ -27,7 +28,6 @@ template<typename T>
 class QSet;
 template<typename T>
 class QList;
-class QStringList;
 
 class Typedef;
 
