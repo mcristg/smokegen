@@ -7,6 +7,7 @@
 #include "defaultargvisitor.h"
 
 #include <QRegularExpression>
+#include "llvm/ADT/StringExtras.h"
 
 bool SmokegenASTVisitor::VisitCXXRecordDecl(clang::CXXRecordDecl *D) {
     registerClass(D);
@@ -483,7 +484,7 @@ Type* SmokegenASTVisitor::registerType(clang::QualType clangType) const {
                             }
                         }
                         if (tempArgType.name().isEmpty()) {
-                            tempArgType.setName(QString::fromStdString(args[i].getAsIntegral().toString(10)));
+                            tempArgType.setName(QString::fromStdString(llvm::toString(args[i].getAsIntegral(),10)));
                         }
                         type.appendTemplateArgument(tempArgType);
                         break;

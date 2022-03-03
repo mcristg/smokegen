@@ -241,16 +241,24 @@ int main(int argc, char **argv)
         Argv.push_back(file.absoluteFilePath().toStdString());
         Argv.push_back("-I/builtins");
         Argv.push_back("-fsyntax-only");
-
-        clang::FileManager FM({"."});
-        FM.Retain();
-		clang::tooling::ToolInvocation inv(Argv, std::unique_ptr<clang::FrontendAction>(new SmokegenFrontendAction), &FM);
-
-        const EmbeddedFile* f = EmbeddedFiles;
+		
+        llvm::IntrusiveRefCntPtr<llvm::vfs::OverlayFileSystem> OverlayFileSystem(
+            new llvm::vfs::OverlayFileSystem(llvm::vfs::getRealFileSystem()));
+        llvm::IntrusiveRefCntPtr<llvm::vfs::InMemoryFileSystem> InMemoryFileSystem(
+            new llvm::vfs::InMemoryFileSystem);
+		
+		const EmbeddedFile* f = EmbeddedFiles;			
         while (f->filename) {
-            inv.mapVirtualFile(f->filename, {f->content, f->size});
+			    InMemoryFileSystem->addFile(
+                  f->filename, 0, llvm::MemoryBuffer::getMemBuffer({f->content, f->size}));
             ++f;
-        }
+		}			
+			
+        OverlayFileSystem->pushOverlay(InMemoryFileSystem);
+        llvm::IntrusiveRefCntPtr<clang::FileManager> FM(
+            new clang::FileManager(clang::FileSystemOptions(), OverlayFileSystem));		
+        
+		clang::tooling::ToolInvocation inv(Argv,std::make_unique<SmokegenFrontendAction>(), FM.get());
 
         if (!inv.run()) {
             return 1;
