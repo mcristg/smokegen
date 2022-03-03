@@ -246,19 +246,19 @@ int main(int argc, char **argv)
             new llvm::vfs::OverlayFileSystem(llvm::vfs::getRealFileSystem()));
         llvm::IntrusiveRefCntPtr<llvm::vfs::InMemoryFileSystem> InMemoryFileSystem(
             new llvm::vfs::InMemoryFileSystem);
-		
-		const EmbeddedFile* f = EmbeddedFiles;			
+
+        const EmbeddedFile* f = EmbeddedFiles;			
         while (f->filename) {
-			    InMemoryFileSystem->addFile(
+			InMemoryFileSystem->addFile(
                   f->filename, 0, llvm::MemoryBuffer::getMemBuffer({f->content, f->size}));
             ++f;
 		}			
 			
         OverlayFileSystem->pushOverlay(InMemoryFileSystem);
         llvm::IntrusiveRefCntPtr<clang::FileManager> FM(
-            new clang::FileManager(clang::FileSystemOptions(), OverlayFileSystem));		
-        
-		clang::tooling::ToolInvocation inv(Argv,std::make_unique<SmokegenFrontendAction>(), FM.get());
+            new clang::FileManager(clang::FileSystemOptions(), OverlayFileSystem));
+			
+        clang::tooling::ToolInvocation inv(Argv,std::make_unique<SmokegenFrontendAction>(), FM.get());
 
         if (!inv.run()) {
             return 1;
