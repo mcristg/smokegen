@@ -310,6 +310,9 @@ public:
     void setIsSlot(bool isSlot) { m_isSlot = isSlot; }
     bool isSlot() const { return m_isSlot; }
 
+    void setIsDeleted(bool isDeleted) { m_isDeleted = isDeleted; }
+    bool isDeleted() const { return m_isDeleted; }
+
     // TODO: This actually doesn't belong here. Better add a dynamic property system to Member subclasses.
     //       Then we can also get rid of the various method => foo maps in the 'Util' struct.
     const QStringList& remainingDefaultValues() const { return m_remainingValues; }
@@ -332,6 +335,7 @@ protected:
     bool m_hasExceptionSpec;
     bool m_isSignal;
     bool m_isSlot;
+    bool m_isDeleted;
     QList<Type> m_exceptionTypes;
     QStringList m_remainingValues;
 };
@@ -471,6 +475,8 @@ public:
     void appendParameter(const Parameter& param) { m_params.append(param); }
 
     QString toString(const QString& fnPtrName = QString()) const;
+
+    bool isAssignable();
 
     // on windows, we can't reference 'types' here, because it's marked __declspec(dllexport) above.
     static Type* registerType(const Type& type)

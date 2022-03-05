@@ -160,7 +160,11 @@ QString SmokeClassFiles::generateMethodBody(const QString& indent, const QString
 			  param.type()->name().contains("(const QDateTime&){}") ||
 			  param.type()->name().contains("(const QUrl&){}") ||
 			  param.type()->name().contains("(const QRegularExpression&){}") ||
-			  param.type()->name().contains("(const QUuid&){}"))
+			  param.type()->name().contains("(const QUuid&){}") ||
+			  param.type()->name().contains("(const QImage&){}") ||
+			  param.type()->name().contains("(const QList<QEventPoint>&){}") ||
+			  param.type()->name().contains("(const QKeySequence&){}") ||
+			  param.type()->name().contains("(const QRect&){}"))
         {
             typeName = "{}";
         }

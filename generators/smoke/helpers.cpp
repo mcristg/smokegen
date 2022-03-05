@@ -783,6 +783,14 @@ void Util::addAccessorMethods(const Field& field, QSet<Type*> *usedTypes)
     
     // reset
     type = field.type();
+
+
+    if (!type->isAssignable()) {
+      return;
+    }
+
+
+    
     // to avoid copying around more stuff than necessary, convert setFoo(Bar) to setFoo(const Bar&)
     if (type->pointerDepth() == 0 && type->getClass() && !(ParserOptions::qtMode && type->getClass()->name() == "QFlags")) {
         Type newType = *type;

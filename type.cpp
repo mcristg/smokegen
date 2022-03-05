@@ -18,6 +18,7 @@
 
 #include "type.h"
 #include "options.h"
+#include <iostream>
 
 QHash<QString, Class> classes;
 QHash<QString, Typedef> typedefs;
@@ -203,4 +204,19 @@ QString Type::toString(const QString& fnPtrName) const
     }
     // the compiler would misinterpret ">>" as the operator - replace it with "> >"
     return ret.replace(">>", "> >");
+}
+
+
+bool Type::isAssignable() {
+  const Class* klass = getClass();   
+  if (klass)
+    {
+      foreach(auto meth, klass->methods()) {
+        if (meth.name() == "operator=" && meth.parameters().first().type() == this) {
+          return !meth.isDeleted();
+        }
+      }
+    }
+  else
+    return true;
 }
