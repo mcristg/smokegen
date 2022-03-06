@@ -220,3 +220,30 @@ bool Type::isAssignable() {
   else
     return true;
 }
+
+void Class::appendMethod(const Method& method, bool checkForConstArguments)
+{ 
+  if (checkForConstArguments)
+    {
+      foreach(auto meth, methods())
+        {
+          if (method.name() == meth.name() && method.isConst() == meth.isConst() && method.parameters().count() == meth.parameters().count())
+            {
+              for (int i = 0; i < method.parameters().count(); i++) {
+
+                Type* type1 = method.parameters()[i].type();
+                Type* type2 = meth.parameters()[i].type();
+
+                if (type1->name() == type2->name() &&
+                    type1->isRef() == type2->isRef() &&
+                    type1->isArray() == type2->isArray() &&
+                    type1->isConst() != type2->isConst())
+                  // Improve me!!!
+                  return;
+
+              }
+            }
+        }
+    }
+  m_methods.append(method); 
+} 

@@ -116,7 +116,7 @@ public:
     
     const QList<Method>& methods() const { return m_methods; }
     QList<Method>& methodsRef() { return m_methods; }
-    void appendMethod(const Method& method) { m_methods.append(method); }
+    void appendMethod(const Method& method, bool checkForConstArguments = false);
     
     const QList<Field>& fields() const { return m_fields; }
     QList<Field>& fieldsRef() { return m_fields; }
