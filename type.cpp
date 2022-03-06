@@ -141,38 +141,38 @@ Type Typedef::resolve() const {
     return ret;
 }
 
-QString GlobalVar::toString() const
+QString GlobalVar::toString(bool prepend = true) const
 {
-    QString ret = m_type->toString() + " ";
+    QString ret = m_type->toString(QString(), prepend) + " ";
     if (!m_nspace.isEmpty())
         ret += m_nspace + "::";
     ret += m_name;
     return ret;
 }
 
-QString Function::toString() const
+QString Function::toString(bool prepend = true) const
 {
     QString ret = GlobalVar::toString();
     ret += "(";
     for (int i = 0; i < m_params.count(); i++) {
-        ret += m_params[i].type()->toString();
+      ret += m_params[i].type()->toString(QString(),prepend);
         if (i < m_params.count() - 1) ret += ", ";
     }
     ret += ")";
     return ret;
 }
 
-QString Type::toString(const QString& fnPtrName) const
+QString Type::toString(const QString& fnPtrName, bool prepend) const
 {
     QString ret;
     if (m_isVolatile) ret += "volatile ";
     if (m_isConst) ret += "const ";
-    ret += name();
+    ret += name(prepend);
     if (!m_templateArgs.isEmpty()) {
         ret += "<";
         for (int i = 0; i < m_templateArgs.count(); i++) {
             if (i > 0) ret += ',';
-            ret += m_templateArgs[i].toString();
+            ret += m_templateArgs[i].toString(QString(), prepend);
         }
         ret += ">";
     }
@@ -198,7 +198,7 @@ QString Type::toString(const QString& fnPtrName) const
         ret += "(*" + fnPtrName + ")(";
         for (int i = 0; i < m_params.count(); i++) {
             if (i > 0) ret += ',';
-            ret += m_params[i].type()->toString();
+            ret += m_params[i].type()->toString(QString(), prepend);
         }
         ret += ')';
     }

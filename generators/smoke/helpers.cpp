@@ -214,7 +214,7 @@ void Util::preparse(QSet<Type*> *usedTypes, QSet<const Class*> *superClasses, co
     for (QHash<QString, Function>::const_iterator it = functions.constBegin(); it != functions.constEnd(); it++) {
         const Function& fn = it.value();
         
-        QString fnString = fn.toString();
+        QString fnString = fn.toString(false);
         
         // gcc doesn't like this function... for whatever reason
         if (fn.name() == "_IO_ftrylockfile"

@@ -125,7 +125,7 @@ QString SmokeDataFile::getTypeFlags(const Type *t, int *classIdx)
     }
 
     QString flags = "0";
-    if (Options::voidpTypes.contains(t->name())) {
+    if (Options::voidpTypes.contains(t->name(false))) {
         // support some of the weird quirks the kalyptus code has
         flags += "|Smoke::t_voidp";
     } else if (t->getClass()) {
@@ -387,7 +387,7 @@ void SmokeDataFile::write()
     out << "    { 0, 0, 0 },\t//0 (no type)\n";
     QMap<QString, Type*> sortedTypes;
     for (QSet<Type*>::const_iterator it = usedTypes.constBegin(); it != usedTypes.constEnd(); it++) {
-        QString typeString = (*it)->toString();
+      QString typeString = (*it)->toString(QString(), false);
         if (!typeString.isEmpty()) {
             sortedTypes.insert(typeString, *it);
         }

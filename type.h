@@ -377,7 +377,7 @@ public:
     void setFileName(const QString& fileName) { m_file = fileName; }
     QString fileName() const { return m_file; }
 
-    virtual QString toString() const;
+    virtual QString toString(bool prepend) const;
 
 protected:
     QString m_name;
@@ -395,7 +395,7 @@ public:
     const ParameterList& parameters() const { return m_params; }
     void appendParameter(const Parameter& param) { m_params.append(param); }
 
-    virtual QString toString() const;
+    virtual QString toString(bool prepend) const;
 
 protected:
     ParameterList m_params;
@@ -427,9 +427,9 @@ public:
     Enum* getEnum() const { return m_enum; }
 
     void setName(const QString& name) { m_name = name; }
-    QString name() const {
+    QString name(bool prepend = true) const {
         if (m_class) {
-            return m_class->toString();
+          return (prepend ? "::": "") +  m_class->toString();
         } else if (m_typedef) {
             return m_typedef->toString();
         } else if (m_enum) {
@@ -474,7 +474,7 @@ public:
     const ParameterList& parameters() const { return m_params; }
     void appendParameter(const Parameter& param) { m_params.append(param); }
 
-    QString toString(const QString& fnPtrName = QString()) const;
+    QString toString(const QString& fnPtrName = QString(), bool prepend = true) const;
 
     bool isAssignable();
 
