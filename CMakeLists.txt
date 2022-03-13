@@ -116,6 +116,9 @@ target_link_libraries(smokegen
 set_target_properties(smokegen PROPERTIES COMPILE_DEFINITIONS __GENERATOR_BUILDING ENABLE_EXPORTS TRUE)
 set(LLVM_REQUIRES_RTTI ON)
 llvm_update_compile_flags(smokegen)
+get_target_property(_compile_flags smokegen COMPILE_FLAGS)
+list(FILTER _compile_flags EXCLUDE REGEX "[ ]?-fno-exceptions")
+set_target_properties(smokegen PROPERTIES COMPILE_FLAGS "${_compile_flags}")
 target_compile_features(smokegen PRIVATE cxx_nullptr)
 set_property(
     SOURCE
