@@ -154,16 +154,6 @@ QString SmokeClassFiles::generateMethodBody(const QString& indent, const QString
         {
             typeName = "void (*)(const QVariant)";
         }
-        else 
-		  if (param.type()->name().contains("(const QByteArray&){}") ||
-		      param.type()->name().contains("(const QString&){}") ||
-			  param.type()->name().contains("(const QDateTime&){}") ||
-			  param.type()->name().contains("(const QUrl&){}") ||
-			  param.type()->name().contains("(const QRegularExpression&){}") ||
-			  param.type()->name().contains("(const QUuid&){}"))
-        {
-            typeName = "{}";
-        }
         else {
             if (param.type()->isArray()) {
                 Type t = *param.type();
@@ -181,13 +171,21 @@ QString SmokeClassFiles::generateMethodBody(const QString& indent, const QString
             if (param.type()->isRef() && !param.type()->isFunctionPointer()) typeName.replace('&', "");
         }
         out << "(" << typeName << ")" << "x[" << j + 1 << "]." << field;
-    }
+    } 
 
     // if the method has any other default parameters, append them here as values
     if (!meth.remainingDefaultValues().isEmpty()) {
-        const QStringList& defaultParams = meth.remainingDefaultValues();
+	QStringList  defaultParams = QStringList(meth.remainingDefaultValues());
+	QString substituted;
+	//Avoid error : reference to type 'const ClassName' cannot bind to an initializer list
+	for (int i = 0; i < defaultParams.size(); ++i) {
+	    if (defaultParams.at(i).contains("{}")) {
+	        substituted = defaultParams.at(i);
+	        defaultParams.replaceInStrings(substituted,"{}");
+	    }
+        }
         if (meth.parameters().count() > 0)
-            out << "," ;
+           out << "," ;
         out << defaultParams.join(",");
     }
 
@@ -227,7 +225,7 @@ void SmokeClassFiles::generateMethod(QTextStream& out, const QString& className,
     } else {
         // This is a virtual method. To know whether we should call with dynamic dispatch, we need a bit of RTTI magic.
         includes.insert("typeinfo");
-        out << "        if (dynamic_cast<__internal_SmokeClass*>(static_cast<" << className << "*>(this))) {\n";   //
+        out << "        if (dynamic_cast<__internal_SmokeClass*>(static_cast<" << className << "*>(this))) {\n";   
         out << generateMethodBody("            ",   // indent
                                   className, smokeClassName, meth, index, false, includes, privateDestructor);
         out << "        } else {\n";

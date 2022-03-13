@@ -249,10 +249,11 @@ int main(int argc, char **argv)
 
         const EmbeddedFile* f = EmbeddedFiles;			
         while (f->filename) {
-			InMemoryFileSystem->addFile(
-                  f->filename, 0, llvm::MemoryBuffer::getMemBuffer({f->content, f->size}));
-            ++f;
-		}			
+	       InMemoryFileSystem->addFile(f->filename,
+                                           0,
+                                           llvm::MemoryBuffer::getMemBuffer({f->content, f->size}));
+               ++f;
+	}			
 			
         OverlayFileSystem->pushOverlay(InMemoryFileSystem);
         llvm::IntrusiveRefCntPtr<clang::FileManager> FM(
