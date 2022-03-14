@@ -81,7 +81,9 @@ void SmokeClassFiles::write(const QList<QString>& keys)
                 continue;
             if (str.startsWith("/builtins/"))
                 str.remove(0, 10);
-            fileOut << "#include <" << str << ">\n";
+            //Avoid error : redefinition by inclusion of qsharedpointer_impl.h
+            if (!str.contains("qsharedpointer_impl.h"))
+               fileOut << "#include <" << str << ">\n";
         }
 
         fileOut << "\n#include <smoke.h>\n#include <" << Options::module << "_smoke.h>\n";
