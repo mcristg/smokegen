@@ -484,7 +484,11 @@ Type* SmokegenASTVisitor::registerType(clang::QualType clangType) const {
                             }
                         }
                         if (tempArgType.name().isEmpty()) {
-                            tempArgType.setName(QString::fromStdString(llvm::toString(args[i].getAsIntegral(),10)));
+#if LLVM_VERSION <= 12
+                           tempArgType.setName(QString::fromStdString(args[i].getAsIntegral().toString(10)));
+#else                           
+                           tempArgType.setName(QString::fromStdString(llvm::toString(args[i].getAsIntegral(),10)));
+#endif
                         }
                         type.appendTemplateArgument(tempArgType);
                         break;
@@ -579,7 +583,7 @@ void SmokegenASTVisitor::addQPropertyAnnotations(const clang::CXXRecordDecl* D) 
                             auto lookup = D->lookup(Name);
                             for (clang::NamedDecl* namedDecl : lookup) {
                                 if (clang::CXXMethodDecl* method = clang::dyn_cast<clang::CXXMethodDecl>(namedDecl)) {
-									auto annotate = clang::AnnotateAttr(*ctx, clang::AttributeCommonInfo(clang::SourceRange()), llvm::StringRef("qt_property")).clone(*ctx);
+                                    auto annotate = clang::AnnotateAttr(*ctx, clang::AttributeCommonInfo(clang::SourceRange()), llvm::StringRef("qt_property")).clone(*ctx);
                                     method->addAttr(annotate);
                                 }
                             }
@@ -591,7 +595,7 @@ void SmokegenASTVisitor::addQPropertyAnnotations(const clang::CXXRecordDecl* D) 
                             auto lookup = D->lookup(Name);
                             for (clang::NamedDecl* namedDecl : lookup) {
                                 if (clang::CXXMethodDecl* method = clang::dyn_cast<clang::CXXMethodDecl>(namedDecl)) {
-									auto annotate = clang::AnnotateAttr(*ctx, clang::AttributeCommonInfo(clang::SourceRange()), llvm::StringRef("qt_property")).clone(*ctx);
+                                    auto annotate = clang::AnnotateAttr(*ctx, clang::AttributeCommonInfo(clang::SourceRange()), llvm::StringRef("qt_property")).clone(*ctx);
                                     method->addAttr(annotate);
                                 }
                             }
