@@ -87,7 +87,7 @@ methodToString(Smoke::ModuleIndex methodId)
         result.append("virtual ");
     }
     
-    if (	(methodRef.flags & Smoke::mf_static) != 0
+    if ((methodRef.flags & Smoke::mf_static) != 0
             && (smoke->classes[methodRef.classId].flags & Smoke::cf_namespace) == 0 )
     {
         result.append("static ");
@@ -98,7 +98,7 @@ methodToString(Smoke::ModuleIndex methodId)
         result.append(" ");
     }
     
-    result.append(  QString("%1::%2(")
+    result.append(QString("%1::%2(")
                         .arg(smoke->classes[methodRef.classId].className)
                         .arg(smoke->methodNames[methodRef.name]) );
                         
@@ -150,10 +150,10 @@ showClass(const Smoke::ModuleIndex& classId, int indent)
         QString className = QString::fromLatin1(classId.smoke->classes[classId.index].className);
         QRegularExpressionMatch match = targetPattern.match(className);		
         if (!matchPattern || match.capturedStart() != -1) {
-			while (indent > 0) {
-				qOut << "  ";
-				indent--;
-			}
+	    while (indent > 0) {
+		  qOut << "  ";
+		  indent--;
+	    }
             qOut << className << "\n";
         }
         
@@ -198,7 +198,7 @@ showClass(const Smoke::ModuleIndex& classId, int indent)
             if (ix >= 0) {  // single match
                 QString method = methodToString(Smoke::ModuleIndex(smoke, ix));
                 QRegularExpressionMatch match = targetPattern.match(method); 
-				if (!matchPattern || match.capturedStart() != -1) {
+		if (!matchPattern || match.capturedStart() != -1) {
                     qOut << method << "\n";
                 }
             } else {        // multiple match
@@ -206,7 +206,7 @@ showClass(const Smoke::ModuleIndex& classId, int indent)
                 while (smoke->ambiguousMethodList[ix]) {
                     QString method = methodToString(Smoke::ModuleIndex(smoke, smoke->ambiguousMethodList[ix]));
                     QRegularExpressionMatch match = targetPattern.match(method); 
-					if (!matchPattern || match.capturedStart() != -1) {
+		    if (!matchPattern || match.capturedStart() != -1) {
                         qOut << method << "\n";
                     }
                     
