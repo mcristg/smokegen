@@ -122,8 +122,15 @@ QString SmokeClassFiles::generateMethodBody(const QString& indent, const QString
         if (meth.type()->isFunctionPointer() || meth.type()->isArray())
             out << meth.type()->toString("xret") << " = ";
         else if (meth.type() != Type::Void)
-            out << meth.type()->toString() << " xret = ";
-
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))       
+          // Dirty hack, stupidy compiler error (::QByteArray name() const). Qt 5.15.2
+          // error : must use 'class' tag to refer to type 'QByteArray' in this scope 
+          if (meth.name().contains("name") &&  meth.type()->toString().contains("QByteArray"))
+             out << "class QByteArray" << " xret = ";
+          else        
+#endif
+             out << meth.type()->toString() << " xret = ";
+        
         if (!(meth.flags() & Method::Static)) {
             QString objName = privateDestructor ? "obj" : "this";
             if (meth.isConst()) {
@@ -197,6 +204,13 @@ QString SmokeClassFiles::generateMethodBody(const QString& indent, const QString
         if (field == "s_enum")
             out << indent << "x[0]." << field << " = static_cast<long>(" << Util::assignmentString(meth.type(), "xret") << ");\n";
         else
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))                
+          // Dirty hack, stupidy compiler error (::QByteArray name() const). Qt 5.15.2
+          // error : must use 'class' tag to refer to type 'QByteArray' in this scope 
+          if (meth.name().contains("name") &&  meth.type()->toString().contains("QByteArray"))
+            out <<  indent << "x[0]." << field << " = " << "(void*)new class QByteArray(xret);\n";
+          else
+#endif            
             out << indent << "x[0]." << field << " = " << Util::assignmentString(meth.type(), "xret") << ";\n";
     } else {
         out << indent << "(void)x; // noop (for compiler warning)\n";
