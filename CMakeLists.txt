@@ -1,12 +1,12 @@
 cmake_minimum_required(VERSION 3.2.2)
 project(smokegenerator)
 
-if(NOT SMOKE_QT_VERSION)
+if (NOT SMOKE_QT_VERSION)
     set(SMOKE_QT_VERSION 5)
 endif()
 set(QT_VERSION Qt${SMOKE_QT_VERSION})
 
-find_package(${QT_VERSION} COMPONENTS Core Xml REQUIRED)
+find_package(${QT_VERSION} COMPONENTS Core Xml REQUIRED) 
 
 
 find_package(LLVM REQUIRED CONFIG)
@@ -151,10 +151,10 @@ if (WIN32)
             $<TARGET_FILE_DIR:smokegen>
     )
 
-	# Realign the stack, for compatibility with an older ABI
-	if(CMAKE_COMPILER_IS_GNUCXX)
-		set_target_properties(smokegen PROPERTIES COMPILE_FLAGS -mstackrealign)
-	endif()
+    # Realign the stack, for compatibility with an older ABI
+    if (CMAKE_COMPILER_IS_GNUCXX)
+	set_target_properties(smokegen PROPERTIES COMPILE_FLAGS -mstackrealign)
+    endif()
 
     # Get rid of the "lib" prefix on archives/DLLs in Windows.
     set_target_properties(smokegen PROPERTIES PREFIX "" IMPORT_PREFIX "")
