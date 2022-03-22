@@ -100,6 +100,15 @@ SmokeClassFiles::SmokeClassFiles(SmokeDataFile *data)
     Util::missingNamespace.insert("QKeyframeAnimation", "Qt3DAnimation::");    
     Util::missingNamespace.insert("QAnimationCallback", "Qt3DAnimation::");
     Util::missingNamespace.insert("QAbstractAnimation", "Qt3DAnimation::");
+    
+    // Error overrides a 'final' function 
+    Util::OverridesFinalFunction.append("axisCount");
+    Util::OverridesFinalFunction.append("buttonCount");
+    Util::OverridesFinalFunction.append("axisNames");
+    Util::OverridesFinalFunction.append("buttonNames");
+    Util::OverridesFinalFunction.append("axisIdentifier");
+    Util::OverridesFinalFunction.append("buttonIdentifier");
+    
 
 }
 
@@ -160,9 +169,9 @@ void SmokeClassFiles::write(const QList<QString>& keys)
 #ifdef WIN32
 	    fileOut << "\n#include <windows.h>\n";
 #endif
-	    //Missing qrenderapi.h
-	    if (Options::module == "qt3drender")
-	       fileOut << "#include <qrenderapi.h>\n";
+	//Missing qrenderapi.h
+	if (Options::module == "qt3drender")
+	   fileOut << "#include <qrenderapi.h>\n";
         // ... and the #includes
         QList<QString> sortedIncludes = includes.values();
         std::sort(sortedIncludes.begin(), sortedIncludes.end());
@@ -222,10 +231,8 @@ QString SmokeClassFiles::generateMethodBody(const QString& indent, const QString
           else        
 #endif
             //look for classes with Qt3D's namespace
-	    //  cond = HaveNamespaceQt3D(meth.type()->toString(),Namespace);
-	    //if (cond) {
 	    if (HaveNamespaceQt3D(meth.type()->toString(),Namespace)) {
-	    out << Namespace << " xret = ";
+	        out << Namespace << " xret = ";
 	  } else
 	     out << meth.type()->toString() << " xret = ";
         }
@@ -233,7 +240,9 @@ QString SmokeClassFiles::generateMethodBody(const QString& indent, const QString
         if (!(meth.flags() & Method::Static)) {
             QString objName = privateDestructor ? "obj" : "this";
             if (meth.isConst()) {
-                out << "((const " << (privateDestructor ? className : smokeClassName) << QString("*)%1)->").arg(objName);
+	        if (Util::OverridesFinalFunction.contains(meth.name()))
+                    out << "((" << (privateDestructor ? className : smokeClassName) << QString("*)%1)->").arg(objName);
+		else out << "((const " << (privateDestructor ? className : smokeClassName) << QString("*)%1)->").arg(objName);
             } else {
                 out << QString("%1->").arg(objName);
             }
@@ -261,7 +270,7 @@ QString SmokeClassFiles::generateMethodBody(const QString& indent, const QString
 	//look for classes with Qt3D's namespace
 	cond = HaveNamespaceQt3D(param.type()->toString(),Namespace);
 	if (cond)
-	  typeName = Namespace;
+	   typeName = Namespace;
 	else if (param.type()->name().contains("QWebEngineCallback"))
              {
                 typeName = "void (*)(const QVariant)";
@@ -424,7 +433,7 @@ void SmokeClassFiles::generateEnumMemberCall(QTextStream& out, const QString& cl
         out  << className << "::";
 
     out << member << ");\n"
-              << "    }\n";  
+        << "    }\n";  
 }
 
 void SmokeClassFiles::generateVirtualMethod(QTextStream& out, const Method& meth, QSet<QString>& includes)
@@ -448,7 +457,8 @@ void SmokeClassFiles::generateVirtualMethod(QTextStream& out, const Method& meth
     }
     out << ") ";
     if (meth.isConst())
-        out << "const ";
+        if (!Util::OverridesFinalFunction.contains(meth.name()))
+            out << "const ";
     if (meth.hasExceptionSpec()) {
         out << "throw(";
         for (int i = 0; i < meth.exceptionTypes().count(); i++) {

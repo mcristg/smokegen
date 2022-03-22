@@ -38,6 +38,7 @@ QHash<QString, QString> Util::typeMap;
 QHash<const Method*, const Function*> Util::globalFunctionMap;
 QHash<const Method*, const Field*> Util::fieldAccessors;
 QHash<QString, QString> Util::missingNamespace;
+QStringList Util::OverridesFinalFunction;
 
 // looks up the inheritance path from desc to super and sets 'virt' to true if it encounters a virtual base
 static bool isVirtualInheritancePathPrivate(const Class* desc, const Class* super, bool *virt)
