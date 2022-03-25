@@ -86,9 +86,9 @@ SmokeClassFiles::SmokeClassFiles(SmokeDataFile *data)
     Util::missingNamespace.insert("QMemoryBarrier", "Qt3DRender::");
     
     Util::missingNamespace.insert("QVector<QRenderTargetOutput::AttachmentPoint>",
-		"QVector<Qt3DRender::QRenderTargetOutput::AttachmentPoint>");
+				  "QVector<Qt3DRender::QRenderTargetOutput::AttachmentPoint>");
     Util::missingNamespace.insert("const QVector<QRenderTargetOutput::AttachmentPoint>&",
-		"const QVector<Qt3DRender::QRenderTargetOutput::AttachmentPoint>&");
+				  "const QVector<Qt3DRender::QRenderTargetOutput::AttachmentPoint>&");
     
     Util::missingNamespace.insert("QFlags<QAnimationCallback::Flag>", "QFlags<Qt3DAnimation::QAnimationCallback::Flag>");
     Util::missingNamespace.insert("(QFlags<QAnimationCallback::Flag>)Qt3DAnimation::QAnimationCallback::QAnimationCallback::OnOwningThread",
@@ -108,8 +108,6 @@ SmokeClassFiles::SmokeClassFiles(SmokeDataFile *data)
     Util::OverridesFinalFunction.append("buttonNames");
     Util::OverridesFinalFunction.append("axisIdentifier");
     Util::OverridesFinalFunction.append("buttonIdentifier");
-    
-
 }
 
 bool SmokeClassFiles::HaveNamespaceQt3D(const QString& param,QString& Namespace)
@@ -121,8 +119,8 @@ bool SmokeClassFiles::HaveNamespaceQt3D(const QString& param,QString& Namespace)
     
     QStringList list1 = param.split("::", Qt::SkipEmptyParts);
     //check class name collision in the different modules with Qt3D
-    if ((Options::module == "qtcore" && list1.at(0) == "QAbstractAnimation") ||
-	(Options::module == "qtmultimedia" && list1.at(0) == "QCamera"))
+    if ((Options::module.contains("core") && list1.at(0) == "QAbstractAnimation") ||
+	(Options::module.contains("multimedia") && list1.at(0) == "QCamera"))
         return false;
     if (Util::missingNamespace.contains(list1.at(0))) {
         Namespace = Util::missingNamespace.value(list1.at(0)) + param; 
@@ -170,7 +168,7 @@ void SmokeClassFiles::write(const QList<QString>& keys)
 	    fileOut << "\n#include <windows.h>\n";
 #endif
 	//Missing qrenderapi.h
-	if (Options::module == "qt3drender")
+        if (Options::module.contains("3drender"))
 	   fileOut << "#include <qrenderapi.h>\n";
         // ... and the #includes
         QList<QString> sortedIncludes = includes.values();
@@ -305,11 +303,11 @@ QString SmokeClassFiles::generateMethodBody(const QString& indent, const QString
 	     if (Util::missingNamespace.contains(substituted)) { 
                  Namespace = Util::missingNamespace.value(substituted);
 		 defaultParams.replaceInStrings(substituted,Namespace);
-	  } else if (substituted.contains("{}"))
-	            defaultParams.replaceInStrings(substituted,"{}");
+	     } else if (substituted.contains("{}"))
+	                defaultParams.replaceInStrings(substituted,"{}");
         }
         if (meth.parameters().count() > 0)
-           out << "," ;
+            out << "," ;
         out << defaultParams.join(",");
     }
 
@@ -323,7 +321,7 @@ QString SmokeClassFiles::generateMethodBody(const QString& indent, const QString
           // Dirty hack, stupidy compiler error (::QByteArray name() const). Qt 5.15.2
           // error : must use 'class' tag to refer to type 'QByteArray' in this scope 
           if (meth.name().contains("name") &&  meth.type()->toString().contains("QByteArray"))
-            out <<  indent << "x[0]." << field << " = " << "(void*)new class QByteArray(xret);\n";
+              out <<  indent << "x[0]." << field << " = " << "(void*)new class QByteArray(xret);\n";
           else
 #endif
 	  out << indent << "x[0]." << field << " = " << Util::assignmentString(meth.type(), "xret") << ";\n";
