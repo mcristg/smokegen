@@ -288,7 +288,10 @@ QString SmokeClassFiles::generateMethodBody(const QString& indent, const QString
                        }
                        // casting to a reference doesn't make sense in this case
                   if (param.type()->isRef() && !param.type()->isFunctionPointer()) typeName.replace('&', "");
-             }   
+             }
+	     //Problem with std::nullptr_t typedef
+	     if (field.contains("s_std::nullptr_t"))
+               field.replace(QString("s_std::nullptr_t"), QString("s_nullptr_t"));
              out << "(" << typeName << ")" << "x[" << j + 1 << "]." << field;
     } 
 

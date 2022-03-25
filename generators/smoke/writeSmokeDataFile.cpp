@@ -402,6 +402,9 @@ void SmokeDataFile::write()
         int classIdx = 0;
         QString flags = getTypeFlags(t, &classIdx);
         typeIndex[t] = i;
+	//Problem with std::nullptr_t typedef 
+	if (flags.contains("t_std::nullptr_t"))
+	    flags.replace(QString("t_std::nullptr_t"), QString("t_nullptr_t"));
         out << "    { \"" << it.key() << "\", " << classIdx << ", " << flags << " },\t//" << i++ << "\n";
     }
     out << "};\n\n";
