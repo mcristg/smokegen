@@ -37,6 +37,7 @@ SmokeClassFiles::SmokeClassFiles(SmokeDataFile *data)
     Util::missingNamespace.insert("QSkeletonLoader", "Qt3DCore::");
     Util::missingNamespace.insert("QAspectEngine", "Qt3DCore::");
     Util::missingNamespace.insert("QNode", "Qt3DCore::");
+    Util::missingNamespace.insert("QGeometryView", "Qt3DCore::");
 
     Util::missingNamespace.insert("QWheelEvent", "Qt3DInput::");
     Util::missingNamespace.insert("QMouseDevice", "Qt3DInput::");
@@ -120,11 +121,20 @@ bool SmokeClassFiles::HaveNamespaceQt3D(const QString& param,QString& Namespace)
     QStringList list1 = param.split("::", Qt::SkipEmptyParts);
     //check class name collision in the different modules with Qt3D
     if ((Options::module.contains("core") && list1.at(0) == "QAbstractAnimation") ||
-	(Options::module.contains("multimedia") && list1.at(0) == "QCamera"))
+        (Options::module.contains("gui") && list1.at(0) == "QAbstractAnimation") ||
+	(Options::module.contains("multimedia") && list1.at(0) == "QCamera") ||
+	(Options::module.contains("widgets") && list1.at(0) == "QAbstractAnimation"))
         return false;
+    
     if (Util::missingNamespace.contains(list1.at(0))) {
-        Namespace = Util::missingNamespace.value(list1.at(0)) + param; 
-        return true;
+        // Problems in Qt6 with Q3D namespace, collide Q3DCore and Qt3DRender.
+        if (Options::module.contains("3dcore"))
+	    if (list1.at(0) == "QBuffer" || list1.at(0) == "QAttribute"){
+	        Namespace = "Qt3DCore::" + param;
+	        return true;
+	    }	
+	Namespace = Util::missingNamespace.value(list1.at(0)) + param;
+	return true;
     }
     return false;
 }	
@@ -231,8 +241,8 @@ QString SmokeClassFiles::generateMethodBody(const QString& indent, const QString
             //look for classes with Qt3D's namespace
 	    if (HaveNamespaceQt3D(meth.type()->toString(),Namespace)) {
 	        out << Namespace << " xret = ";
-	  } else
-	     out << meth.type()->toString() << " xret = ";
+	    } else
+	        out << meth.type()->toString() << " xret = ";
         }
 	
         if (!(meth.flags() & Method::Static)) {
@@ -291,7 +301,7 @@ QString SmokeClassFiles::generateMethodBody(const QString& indent, const QString
              }
 	     //Problem with std::nullptr_t typedef
 	     if (field.contains("s_std::nullptr_t"))
-               field.replace(QString("s_std::nullptr_t"), QString("s_nullptr_t"));
+                 field.replace(QString("s_std::nullptr_t"), QString("s_nullptr_t"));
              out << "(" << typeName << ")" << "x[" << j + 1 << "]." << field;
     } 
 
