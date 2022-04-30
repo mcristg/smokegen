@@ -101,7 +101,7 @@ SmokeClassFiles::SmokeClassFiles(SmokeDataFile *data)
     Util::missingNamespace.insert("QKeyframeAnimation", "Qt3DAnimation::");    
     Util::missingNamespace.insert("QAnimationCallback", "Qt3DAnimation::");
     Util::missingNamespace.insert("QAbstractAnimation", "Qt3DAnimation::");
-    
+
     // Error overrides a 'final' function 
     Util::OverridesFinalFunction.append("axisCount");
     Util::OverridesFinalFunction.append("buttonCount");
@@ -295,9 +295,13 @@ QString SmokeClassFiles::generateMethodBody(const QString& indent, const QString
                           // references and classes are passed in s_class
                           typeName.append('*');
                           out << '*';
-                       }
-                       // casting to a reference doesn't make sense in this case
-                  if (param.type()->isRef() && !param.type()->isFunctionPointer()) typeName.replace('&', "");
+                  }
+                  // casting to a reference doesn't make sense in this case
+                  if (param.type()->isRef() && !param.type()->isFunctionPointer()) {
+		      //Multiples '&' example "const std::function<void (const QWebEngineFindTextResult &)>&"
+		      int pos = typeName.lastIndexOf('&');
+		      typeName.replace(pos,1, ' ');
+		  }	  
              }
 	     //Problem with std::nullptr_t typedef
 	     if (field.contains("s_std::nullptr_t"))
