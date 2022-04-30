@@ -409,9 +409,12 @@ void SmokeClassFiles::generateGetAccessor(QTextStream& out, const QString& class
     fieldName += className + "::" + field.name();
     out << "void x_" << index << "(Smoke::Stack x) {\n"
         << "        // " << field.toString() << "\n"
-        << "        x[0]." << Util::stackItemField(type) << " = "
-            << Util::assignmentString(type, fieldName) << ";\n"
-        << "    }\n";
+        << "        x[0].";
+    if (Util::stackItemField(type).contains("s_enum"))
+        out << "s_enum" <<  " = static_cast<long>("
+            << Util::assignmentString(type, fieldName) << ");\n"  << "    }\n";
+    else out << Util::stackItemField(type) << " = "
+             << Util::assignmentString(type, fieldName) << ";\n" << "    }\n";
 }
 
 void SmokeClassFiles::generateSetAccessor(QTextStream& out, const QString& className, const Field& field,
