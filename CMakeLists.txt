@@ -77,11 +77,11 @@ add_executable(smokegen ${generator_SRC})
 
 # Add support to llvm version 15
 if ("${LLVM_VERSION_MAJOR}" GREATER_EQUAL "15")
-	set(clang_Support clangSupport)
-	set(Windows_Driver WindowsDriver)
+    set(clang_Support clangSupport)
+    set(Windows_Driver WindowsDriver)
 else() 
- set(clang_Support "")
- set(Windows_Driver "") 
+  set(clang_Support "")
+  set(Windows_Driver "") 
 endif()	
 
 llvm_map_components_to_libnames(
@@ -95,7 +95,7 @@ llvm_map_components_to_libnames(
     profiledata
     support
 
-	# WindowsDriver LLVM 15
+    # WindowsDriver LLVM 15
     ${Windows_Driver}
 )
 
@@ -124,9 +124,9 @@ target_link_libraries(smokegen
     clangSerialization
     clangToolingCore
     clangTooling
-	
-	# clangSupport LLVM 15
-	${clang_Support}
+
+    # clangSupport LLVM 15
+    ${clang_Support}
     -Wl,--end-group
     ${llvm_libs}
 )
