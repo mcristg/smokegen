@@ -114,27 +114,27 @@ SmokeClassFiles::SmokeClassFiles(SmokeDataFile *data)
 bool SmokeClassFiles::HaveNamespaceQt3D(const QString& param,QString& Namespace)
 {  
     if (Util::missingNamespace.contains(param)) {
-        Namespace = Util::missingNamespace.value(param); 
-        return true;
+      Namespace = Util::missingNamespace.value(param);
+      return true;
     }
-    
+
     QStringList list1 = param.split("::", Qt::SkipEmptyParts);
     //check class name collision in the different modules with Qt3D
     if ((!Options::module.contains("animation") && list1.at(0) == "QAbstractAnimation")  ||
-        (Options::module.contains("multimedia") && list1.at(0) == "QCamera"))
-        return false;
+	(Options::module.contains("multimedia") && list1.at(0) == "QCamera"))
+      return false;
     if (Options::module.contains("animation") && list1.at(0) == "QAbstractAnimation")
-       if ((list1.at(1) == "State") || (list1.at(1) == "Direction"))
-           return false;
+      if ((list1.at(1) == "State") || (list1.at(1) == "Direction"))
+	return false;
     if (Util::missingNamespace.contains(list1.at(0))) {
-        // Problems in Qt6 with Q3D namespace, collide Q3DCore and Qt3DRender.
-        if (Options::module.contains("3dcore"))
-	    if (list1.at(0) == "QBuffer" || list1.at(0) == "QAttribute"){
-	        Namespace = "Qt3DCore::" + param;
-	        return true;
-	    }
-	Namespace = Util::missingNamespace.value(list1.at(0)) + param;
-	return true;
+      // Problems in Qt6 with Q3D namespace, collide Q3DCore and Qt3DRender.
+      if (Options::module.contains("3dcore"))
+	if (list1.at(0) == "QBuffer" || list1.at(0) == "QAttribute"){
+	  Namespace = "Qt3DCore::" + param;
+	  return true;
+	}
+      Namespace = Util::missingNamespace.value(list1.at(0)) + param;
+      return true;
     }
     return false;
 }
