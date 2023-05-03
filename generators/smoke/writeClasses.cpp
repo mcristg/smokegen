@@ -303,9 +303,6 @@ QString SmokeClassFiles::generateMethodBody(const QString& indent, const QString
 		      typeName.replace(pos,1, ' ');
 		  }	  
              }
-	     //Problem with std::nullptr_t typedef
-	     if (field.contains("s_std::nullptr_t"))
-                 field.replace(QString("s_std::nullptr_t"), QString("s_nullptr_t"));
              out << "(" << typeName << ")" << "x[" << j + 1 << "]." << field;
     } 
 

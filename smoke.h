@@ -219,7 +219,6 @@ public:
 	double s_double;
         long s_enum;
         void* s_class;
-        std::nullptr_t s_nullptr_t;
     };
     enum TypeId {
 	t_voidp,
@@ -236,7 +235,6 @@ public:
 	t_double,
         t_enum,
         t_class,
-	t_nullptr_t,
 	t_last		// number of pre-defined types
     };
 
