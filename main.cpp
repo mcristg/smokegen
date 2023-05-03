@@ -230,22 +230,20 @@ int main(int argc, char **argv)
     bool logErrors = log.open(QFile::WriteOnly | QFile::Truncate);
     QTextStream logOut(&log);
  
-    llvm::IntrusiveRefCntPtr<llvm::vfs::OverlayFileSystem> OverlayFileSystem(
-        new llvm::vfs::OverlayFileSystem(llvm::vfs::getRealFileSystem()));
-    llvm::IntrusiveRefCntPtr<llvm::vfs::InMemoryFileSystem> InMemoryFileSystem(
-        new llvm::vfs::InMemoryFileSystem);
+    llvm::IntrusiveRefCntPtr<llvm::vfs::OverlayFileSystem>
+      OverlayFileSystem(new llvm::vfs::OverlayFileSystem(llvm::vfs::getRealFileSystem()));
+    llvm::IntrusiveRefCntPtr<llvm::vfs::InMemoryFileSystem>
+      InMemoryFileSystem(new llvm::vfs::InMemoryFileSystem);
 
     const EmbeddedFile* f = EmbeddedFiles;			
     while (f->filename) {
-	       InMemoryFileSystem->addFile(f->filename,
-                                           0,
-                                           llvm::MemoryBuffer::getMemBuffer({f->content, f->size}));
-           ++f;
-	}			
+      InMemoryFileSystem->addFile(f->filename,0,llvm::MemoryBuffer::getMemBuffer({f->content, f->size}));
+      ++f;
+    }			
 			
     OverlayFileSystem->pushOverlay(InMemoryFileSystem);
-    llvm::IntrusiveRefCntPtr<clang::FileManager> FM(
-        new clang::FileManager(clang::FileSystemOptions(), OverlayFileSystem));
+    llvm::IntrusiveRefCntPtr<clang::FileManager>
+      FM(new clang::FileManager(clang::FileSystemOptions(), OverlayFileSystem));
 			 
     foreach (QFileInfo file, ParserOptions::headerList) {
         qDebug() << "parsing" << file.absoluteFilePath();
