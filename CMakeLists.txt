@@ -95,7 +95,7 @@ llvm_map_components_to_libnames(
     core
     mc
     mcparser
-    FrontendOpenMP
+    Frontendopenmp
     option
     profiledata
     support
