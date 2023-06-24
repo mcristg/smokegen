@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.2.2)
+cmake_minimum_required(VERSION 3.25.2)
 project(smokegenerator)
 
 if (NOT SMOKE_QT_VERSION)
@@ -35,6 +35,11 @@ if (NOT LIB_INSTALL_DIR)
 endif (NOT LIB_INSTALL_DIR)
 
 add_compile_definitions(LLVM_VERSION=${LLVM_VERSION_MAJOR})
+
+if(LLVM_VERSION_MAJOR GREATER_EQUAL 16)
+   set(CMAKE_CXX_STANDARD 17)
+   set(CMAKE_CXX_STANDARD_REQUIRED ON)
+endif()   
 
 include_directories(${CMAKE_BINARY_DIR})
 
