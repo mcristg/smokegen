@@ -89,7 +89,6 @@ struct SmokeClassFiles
     void write(const QList<QString>& keys);
 
 private:
-    bool HaveNamespaceQt3D(const QString& param,QString& Namespace);
     QString generateMethodBody(const QString& indent, const QString& className, const QString& smokeClassName, const Method& meth, int index, bool dynamicDispatch, QSet< QString >& includes, bool privateDestructor);
     void generateMethod(QTextStream& out, const QString& className, const QString& smokeClassName, const Method& meth, int index, QSet<QString>& includes, bool privateDestructor);
     void generateGetAccessor(QTextStream& out, const QString& className, const Field& field, const Type* type, int index);
@@ -108,7 +107,7 @@ struct Util
     static QHash<QString, QString> typeMap;
     static QHash<const Method*, const Function*> globalFunctionMap;
     static QHash<const Method*, const Field*> fieldAccessors;
-    static QHash<QString, QString> missingNamespace;
+	
     static QStringList OverridesFinalFunction;
     
     static bool isVirtualInheritancePath(const Class* desc, const Class* super);

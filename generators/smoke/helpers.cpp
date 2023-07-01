@@ -37,7 +37,7 @@ typedef void (*InitSmokeFn)();
 QHash<QString, QString> Util::typeMap;
 QHash<const Method*, const Function*> Util::globalFunctionMap;
 QHash<const Method*, const Field*> Util::fieldAccessors;
-QHash<QString, QString> Util::missingNamespace;
+
 QStringList Util::OverridesFinalFunction;
 
 // looks up the inheritance path from desc to super and sets 'virt' to true if it encounters a virtual base
@@ -717,9 +717,7 @@ QString Util::assignmentString(const Type* type, const QString& var)
     {
         return "(uint)" + var;
     } else {
-	if (Util::missingNamespace.contains(type->toString()))
-	   ret = "(void*)new " +  Util::missingNamespace.value(type->toString());
-        else ret = "(void*)new " + type->toString();
+        QString ret = "(void*)new " + type->toString();
         ret += '(' + var + ')';
         return ret;
     }

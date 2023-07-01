@@ -32,76 +32,6 @@
 SmokeClassFiles::SmokeClassFiles(SmokeDataFile *data)
     : m_smokeData(data)
 {
-    // Smokegen does not correctly detect some namespaces in Qt3D.  
-    Util::missingNamespace.insert("QSceneChange", "Qt3DCore::");
-    Util::missingNamespace.insert("QSkeletonLoader", "Qt3DCore::");
-    Util::missingNamespace.insert("QAspectEngine", "Qt3DCore::");
-    Util::missingNamespace.insert("QNode", "Qt3DCore::");
-    Util::missingNamespace.insert("QGeometryView", "Qt3DCore::");
-
-    Util::missingNamespace.insert("QWheelEvent", "Qt3DInput::");
-    Util::missingNamespace.insert("QMouseDevice", "Qt3DInput::");
-    Util::missingNamespace.insert("QMouseEvent", "Qt3DInput::");
-    Util::missingNamespace.insert("QAxisAccumulator", "Qt3DInput::");
-    
-    Util::missingNamespace.insert("QAbstractTexture", "Qt3DRender::");
-    Util::missingNamespace.insert("QRenderTargetOutput", "Qt3DRender::");
-    Util::missingNamespace.insert("QCameraLens", "Qt3DRender::");
-    Util::missingNamespace.insert("QTextureWrapMode", "Qt3DRender::");
-    Util::missingNamespace.insert("QBlitFramebuffer", "Qt3DRender::");
-    Util::missingNamespace.insert("QAttribute", "Qt3DRender::");
-    Util::missingNamespace.insert("QPickEvent", "Qt3DRender::");
-    Util::missingNamespace.insert("QPointSize", "Qt3DRender::");
-    Util::missingNamespace.insert("QSubtreeEnabler", "Qt3DRender::");
-    Util::missingNamespace.insert("QShaderProgram", "Qt3DRender::");
-    Util::missingNamespace.insert("QBlendEquationArguments", "Qt3DRender::");
-    Util::missingNamespace.insert("QLevelOfDetail", "Qt3DRender::");
-    Util::missingNamespace.insert("QPickingSettings", "Qt3DRender::");
-    Util::missingNamespace.insert("QComputeCommand", "Qt3DRender::");
-    Util::missingNamespace.insert("QMesh", "Qt3DRender::");
-    Util::missingNamespace.insert("QCamera", "Qt3DRender::");
-    Util::missingNamespace.insert("QAbstractLight", "Qt3DRender::");
-    Util::missingNamespace.insert("QBuffer", "Qt3DRender::");
-    Util::missingNamespace.insert("QStencilOperationArguments", "Qt3DRender::");
-    Util::missingNamespace.insert("QSceneLoader", "Qt3DRender::");
-    Util::missingNamespace.insert("QRasterMode", "Qt3DRender::");
-    Util::missingNamespace.insert("QSortPolicy", "Qt3DRender::");
-    Util::missingNamespace.insert("QRenderCapabilities", "Qt3DRender::");
-    Util::missingNamespace.insert("QDepthTest", "Qt3DRender::");
-    Util::missingNamespace.insert("QSetFence", "Qt3DRender::");
-    Util::missingNamespace.insert("QAbstractRayCaster", "Qt3DRender::");
-    Util::missingNamespace.insert("QGraphicsApiFilter", "Qt3DRender::");
-    Util::missingNamespace.insert("QShaderImage", "Qt3DRender::");
-    Util::missingNamespace.insert("QBlendEquation", "Qt3DRender::");
-    Util::missingNamespace.insert("QClearBuffers", "Qt3DRender::");
-    Util::missingNamespace.insert("QAlphaTest", "Qt3DRender::");
-    Util::missingNamespace.insert("QFrontFace", "Qt3DRender::");
-    Util::missingNamespace.insert("QLayerFilter", "Qt3DRender::");
-    Util::missingNamespace.insert("QStencilTestArguments", "Qt3DRender::");
-    Util::missingNamespace.insert("QRenderSettings", "Qt3DRender::");
-    Util::missingNamespace.insert("QRayCasterHit", "Qt3DRender::");
-    Util::missingNamespace.insert("QTextureImage", "Qt3DRender::");
-    Util::missingNamespace.insert("QGeometryRenderer", "Qt3DRender::");
-    Util::missingNamespace.insert("QWaitFence", "Qt3DRender::");
-    Util::missingNamespace.insert("QCullFace", "Qt3DRender::");
-    Util::missingNamespace.insert("QMemoryBarrier", "Qt3DRender::");
-    
-    Util::missingNamespace.insert("QVector<QRenderTargetOutput::AttachmentPoint>",
-				  "QVector<Qt3DRender::QRenderTargetOutput::AttachmentPoint>");
-    Util::missingNamespace.insert("const QVector<QRenderTargetOutput::AttachmentPoint>&",
-				  "const QVector<Qt3DRender::QRenderTargetOutput::AttachmentPoint>&");
-    
-    Util::missingNamespace.insert("QFlags<QAnimationCallback::Flag>", "QFlags<Qt3DAnimation::QAnimationCallback::Flag>");
-    Util::missingNamespace.insert("(QFlags<QAnimationCallback::Flag>)Qt3DAnimation::QAnimationCallback::QAnimationCallback::OnOwningThread",
-				  "(QFlags<Qt3DAnimation::QAnimationCallback::Flag>)Qt3DAnimation::QAnimationCallback::QAnimationCallback::OnOwningThread");
-     
-    Util::missingNamespace.insert("QAnimationClipLoader", "Qt3DAnimation::");
-    Util::missingNamespace.insert("QAbstractClipAnimator", "Qt3DAnimation::");
-    Util::missingNamespace.insert("QMorphingAnimation", "Qt3DAnimation::");
-    Util::missingNamespace.insert("QKeyframeAnimation", "Qt3DAnimation::");    
-    Util::missingNamespace.insert("QAnimationCallback", "Qt3DAnimation::");
-    Util::missingNamespace.insert("QAbstractAnimation", "Qt3DAnimation::");
-
     // Error overrides a 'final' function 
     Util::OverridesFinalFunction.append("axisCount");
     Util::OverridesFinalFunction.append("buttonCount");
@@ -109,34 +39,6 @@ SmokeClassFiles::SmokeClassFiles(SmokeDataFile *data)
     Util::OverridesFinalFunction.append("buttonNames");
     Util::OverridesFinalFunction.append("axisIdentifier");
     Util::OverridesFinalFunction.append("buttonIdentifier");
-}
-
-bool SmokeClassFiles::HaveNamespaceQt3D(const QString& param,QString& Namespace)
-{  
-    if (Util::missingNamespace.contains(param)) {
-      Namespace = Util::missingNamespace.value(param);
-      return true;
-    }
-
-    QStringList list1 = param.split("::", Qt::SkipEmptyParts);
-    //check class name collision in the different modules with Qt3D
-    if ((!Options::module.contains("animation") && list1.at(0) == "QAbstractAnimation")  ||
-	(Options::module.contains("multimedia") && list1.at(0) == "QCamera"))
-      return false;
-    if (Options::module.contains("animation") && list1.at(0) == "QAbstractAnimation")
-      if ((list1.at(1) == "State") || (list1.at(1) == "Direction"))
-	return false;
-    if (Util::missingNamespace.contains(list1.at(0))) {
-      // Problems in Qt6 with Q3D namespace, collide Q3DCore and Qt3DRender.
-      if (Options::module.contains("3dcore"))
-	if (list1.at(0) == "QBuffer" || list1.at(0) == "QAttribute"){
-	  Namespace = "Qt3DCore::" + param;
-	  return true;
-	}
-      Namespace = Util::missingNamespace.value(list1.at(0)) + param;
-      return true;
-    }
-    return false;
 }
 
 void SmokeClassFiles::write()
@@ -195,6 +97,23 @@ void SmokeClassFiles::write(const QList<QString>& keys)
 
         fileOut << "\n#include <smoke.h>\n#include <" << Options::module << "_smoke.h>\n";
 
+        if (Options::module.contains("3d")) {
+          if (Options::module.contains("3dcore"))
+            fileOut << "\nusing namespace Qt3DCore;\n";
+          else if (Options::module.contains("3danimation"))
+            fileOut << "\nusing namespace Qt3DAnimation;\n";
+          else if (Options::module.contains("3dextras")) {
+            fileOut << "\nusing namespace Qt3DExtras;\n";
+            fileOut << "using namespace Qt3DRender;\n";
+            fileOut << "using namespace Qt3DCore;\n";
+          } else if (Options::module.contains("3dinput"))
+            fileOut << "\nusing namespace Qt3DInput;\n";
+          else if (Options::module.contains("3dlogic"))
+            fileOut << "\nusing namespace Qt3DLogic;\n";
+          else if (Options::module.contains("3drender"))
+            fileOut << "\nusing namespace Qt3DRender;\n";
+        }		
+
         fileOut << "\nclass __internal_SmokeClass {};\n";
 
         fileOut << "\nnamespace __smoke" << Options::module << " {\n\n";
@@ -235,14 +154,10 @@ QString SmokeClassFiles::generateMethodBody(const QString& indent, const QString
           // Dirty hack, stupidy compiler error (::QByteArray name() const). Qt 5.15.2
           // error : must use 'class' tag to refer to type 'QByteArray' in this scope 
           if (meth.name().contains("name") &&  meth.type()->toString().contains("QByteArray"))
-             out << "class QByteArray" << " xret = ";
+            out << "class QByteArray" << " xret = ";
           else        
 #endif
-            //look for classes with Qt3D's namespace
-	    if (HaveNamespaceQt3D(meth.type()->toString(),Namespace)) {
-	        out << Namespace << " xret = ";
-	    } else
-	        out << meth.type()->toString() << " xret = ";
+            out << meth.type()->toString() << " xret = ";
         }
 	
         if (!(meth.flags() & Method::Static)) {
@@ -275,35 +190,34 @@ QString SmokeClassFiles::generateMethodBody(const QString& indent, const QString
 
         QString field = Util::stackItemField(param.type());
         QString typeName = param.type()->toString();
-	//look for classes with Qt3D's namespace
-	cond = HaveNamespaceQt3D(param.type()->toString(),Namespace);
-	if (cond)
-	   typeName = Namespace;
-	else if (param.type()->name().contains("QWebEngineCallback"))
-             {
-                typeName = "void (*)(const QVariant)";
-             }
-             else {
-                  if (param.type()->isArray()) {
-                     Type t = *param.type(); 
-                     t.setPointerDepth(t.pointerDepth() + 1);
-                     t.setIsRef(false);
-                     typeName = t.toString();
-                     out << '*';
-                  }
-                  else if (field == "s_class" && (param.type()->pointerDepth() == 0 || param.type()->isRef()) && !param.type()->isFunctionPointer()) {
-                          // references and classes are passed in s_class
-                          typeName.append('*');
-                          out << '*';
-                  }
-                  // casting to a reference doesn't make sense in this case
-                  if (param.type()->isRef() && !param.type()->isFunctionPointer()) {
-		      //Multiples '&' example "const std::function<void (const QWebEngineFindTextResult &)>&"
-		      int pos = typeName.lastIndexOf('&');
-		      typeName.replace(pos,1, ' ');
-		  }	  
-             }
-             out << "(" << typeName << ")" << "x[" << j + 1 << "]." << field;
+	if (param.type()->name().contains("QWebEngineCallback"))
+          {
+            typeName = "void (*)(const QVariant)";
+          }
+        else {
+          if (param.type()->isArray()) {
+            Type t = *param.type();
+            t.setPointerDepth(t.pointerDepth() + 1);
+            t.setIsRef(false);
+            typeName = t.toString();
+            out << '*';
+          }
+          else if (field == "s_class" && (param.type()->pointerDepth() == 0 || param.type()->isRef()) && !param.type()->isFunctionPointer()) {
+            // references and classes are passed in s_class
+            typeName.append('*');
+            out << '*';
+          }
+          // casting to a reference doesn't make sense in this case
+          if (param.type()->isRef() && !param.type()->isFunctionPointer()) {
+            //Multiples '&' example "const std::function<void (const QWebEngineFindTextResult &)>&"
+            int pos = typeName.lastIndexOf('&');
+            typeName.replace(pos,1, ' ');
+          }
+        }
+        if (smokeClassName == "x_Qt3DInput" && (meth.name().contains("qt_getEnumName") || meth.name().contains("qt_getEnumMetaObject")))
+          out << "(" << "Qt3DInput::" << typeName << ")" << "x[" << j + 1 << "]." << field;
+        else 
+          out << "(" << typeName << ")" << "x[" << j + 1 << "]." << field;
     } 
 
     // if the method has any other default parameters, append them here as values
@@ -311,15 +225,12 @@ QString SmokeClassFiles::generateMethodBody(const QString& indent, const QString
 	QStringList  defaultParams = QStringList(meth.remainingDefaultValues());
 	QString substituted;
 	//Avoid error : reference to type 'const ClassName' cannot bind to an initializer list
-	for (int i = 0; i < defaultParams.size(); ++i) {
-	     substituted = defaultParams.at(i);
-	     //look for classes with Qt3D's namespace
-	     if (Util::missingNamespace.contains(substituted)) { 
-                 Namespace = Util::missingNamespace.value(substituted);
-		 defaultParams.replaceInStrings(substituted,Namespace);
-	     } else if (substituted.contains("{}"))
-	                defaultParams.replaceInStrings(substituted,"{}");
+      for (int i = 0; i < defaultParams.size(); ++i) {
+        if (defaultParams.at(i).contains("{}")) {
+          substituted = defaultParams.at(i);
+          defaultParams.replaceInStrings(substituted,"{}");
         }
+      }
         if (meth.parameters().count() > 0)
             out << "," ;
         out << defaultParams.join(",");
@@ -335,10 +246,10 @@ QString SmokeClassFiles::generateMethodBody(const QString& indent, const QString
           // Dirty hack, stupidy compiler error (::QByteArray name() const). Qt 5.15.2
           // error : must use 'class' tag to refer to type 'QByteArray' in this scope 
           if (meth.name().contains("name") &&  meth.type()->toString().contains("QByteArray"))
-              out <<  indent << "x[0]." << field << " = " << "(void*)new class QByteArray(xret);\n";
+            out <<  indent << "x[0]." << field << " = " << "(void*)new class QByteArray(xret);\n";
           else
 #endif
-	  out << indent << "x[0]." << field << " = " << Util::assignmentString(meth.type(), "xret") << ";\n";
+            out << indent << "x[0]." << field << " = " << Util::assignmentString(meth.type(), "xret") << ";\n";
     } else {
         out << indent << "(void)x; // noop (for compiler warning)\n";
     }
