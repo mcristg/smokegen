@@ -214,7 +214,12 @@ QString SmokeClassFiles::generateMethodBody(const QString& indent, const QString
             typeName.replace(pos,1, ' ');
           }
         }
-        if (smokeClassName == "x_Qt3DInput" && (meth.name().contains("qt_getEnumName") || meth.name().contains("qt_getEnumMetaObject")))
+        //error C2872: 'QTransform': ambiguous symbol
+        if (smokeClassName == "x_QGlobalSpace" && typeName.contains("QTransform")) {
+          QStringList Transform = QStringList(typeName);
+          Transform.replaceInStrings("QTransform","::QTransform");
+          out << "(" << Transform.join(" ") << ")" << "x[" << j + 1 << "]." << field;
+        } else if (smokeClassName == "x_Qt3DInput" && (meth.name().contains("qt_getEnumName") || meth.name().contains("qt_getEnumMetaObject")))
           out << "(" << "Qt3DInput::" << typeName << ")" << "x[" << j + 1 << "]." << field;
         else 
           out << "(" << typeName << ")" << "x[" << j + 1 << "]." << field;
