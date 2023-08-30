@@ -1,5 +1,5 @@
 # Qt Widgets for Technical Applications
-# available at http://www.http://qwt.sourceforge.net/
+# available at https://qwt.sourceforge.io/
 #
 # The module defines the following variables:
 #  Qwt_FOUND - the system has Qwt
