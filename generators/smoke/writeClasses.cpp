@@ -430,16 +430,25 @@ void SmokeClassFiles::generateSetAccessor(QTextStream& out, const QString& class
     }
     fieldName += className + "::" + field.name();
     out << "void x_" << index << "(Smoke::Stack x) {\n"
-        << "        // " << field.toString() << "=\n"
-        << "        " << fieldName << " = ";
+        << "        // " << field.toString() << "=\n";
     QString unionField = Util::stackItemField(type);
     QString cast = type->toString();
     cast.replace("&", "");
-    if (unionField == "s_class" && type->pointerDepth() == 0) {
-        out << '*';
-        cast += '*';
+    // C++ haven't first class arrays.
+    if (cast.contains("[") && (unionField == "s_class" && type->pointerDepth() == 0)) {
+      QStringList list1 = cast.split("[", Qt::SkipEmptyParts);
+      QStringList list2 = list1.at(1).split("]", Qt::SkipEmptyParts);
+      int siz = list2.at(0).toInt();
+      out << "        " << "std::memcpy(" << fieldName << ", x[1].s_class, " << siz
+          << "*sizeof(" <<  list1.at(0) << "));\n";
+    } else {
+      out << "        " << fieldName << " = ";
+      if (unionField == "s_class" && type->pointerDepth() == 0) {
+	out << '*';
+	cast += '*';
+      }
+      out << '(' << cast << ')' << "x[1]." << unionField << ";\n";
     }
-    out << '(' << cast << ')' << "x[1]." << unionField << ";\n";
     out << "    }\n";
 }
 
