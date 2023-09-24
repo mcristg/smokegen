@@ -288,24 +288,27 @@ QString SmokeClassFiles::generateMethodBody(const QString& indent, const QString
                 typeName = "void (*)(const QVariant)";
              }
              else {
-                  if (param.type()->isArray()) {
-                     Type t = *param.type(); 
-                     t.setPointerDepth(t.pointerDepth() + 1);
-                     t.setIsRef(false);
-                     typeName = t.toString();
-                     out << '*';
-                  }
-                  else if (field == "s_class" && (param.type()->pointerDepth() == 0 || param.type()->isRef()) && !param.type()->isFunctionPointer()) {
-                          // references and classes are passed in s_class
-                          typeName.append('*');
-                          out << '*';
-                  }
-                  // casting to a reference doesn't make sense in this case
-                  if (param.type()->isRef() && !param.type()->isFunctionPointer()) {
-		      //Multiples '&' example "const std::function<void (const QWebEngineFindTextResult &)>&"
-		      int pos = typeName.lastIndexOf('&');
-		      typeName.replace(pos,1, ' ');
-		  }	  
+	       if (param.type()->isArray()) {
+		 Type t = *param.type();
+		 t.setPointerDepth(t.pointerDepth() + 1);
+		 t.setIsRef(false);
+		 typeName = t.toString();
+		 out << '*';
+	       }
+	       else if (field == "s_class" && (param.type()->pointerDepth() == 0 || param.type()->isRef()) && !param.type()->isFunctionPointer()) {
+		 // references and classes are passed in s_class
+		 typeName.append('*');
+		 out << '*';
+	       }
+	       // Erroneous cast.
+	       if (typeName.contains("&(*)") && meth.name().contains("Init"))
+	         typeName.replace("&", "");
+	       // casting to a reference doesn't make sense in this case
+	       if (param.type()->isRef() && !param.type()->isFunctionPointer()) {
+		 //Multiples '&' example "const std::function<void (const QWebEngineFindTextResult &)>&"
+		 int pos = typeName.lastIndexOf('&');
+		 typeName.replace(pos,1, ' ');
+	       }	  
              }
              out << "(" << typeName << ")" << "x[" << j + 1 << "]." << field;
     } 
