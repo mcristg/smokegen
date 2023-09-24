@@ -14,7 +14,7 @@ set(smoke_cmake_files
         FindPhonon.cmake
         FindQImageBlitz.cmake
         FindQScintilla.cmake
-        FindQwt5.cmake
+        FindQwt.cmake
         HandleImportedTargetsInCMakeRequiredLibraries.cmake
         MacroLogFeature.cmake
         MacroOptionalAddBindings.cmake
