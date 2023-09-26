@@ -214,21 +214,23 @@ void SmokeDataFile::write()
         out << "      switch(to) {\n";
         foreach (const Class* base, Util::superClassList(&klass)) {
             QString className = base->toString();
-            
             if (includedClasses.contains(className) || externalClasses.contains((Class *) base)) {
                 int index = classIndex[className];
                 if (indices.contains(index))
                     continue;
                 indices << index;
-                
-                out << QString("        case %1: return (void*)(%2*)(%3*)xptr;\n")
-                    .arg(index).arg(className).arg(klass.toString());
+                if (className.isEmpty())
+		  out << QString("        case %1: return (void*)(%2*)xptr;\n")
+		    .arg(index).arg(klass.toString());
+		else
+		  out << QString("        case %1: return (void*)(%2*)(%3*)xptr;\n")
+		    .arg(index).arg(className).arg(klass.toString());
             }
         }
-        out << QString("        case %1: return (void*)(%2*)xptr;\n").arg(iter.value()).arg(klass.toString());
+	if (!klass.toString().isEmpty())
+	  out << QString("        case %1: return (void*)(%2*)xptr;\n").arg(iter.value()).arg(klass.toString());
         foreach (const Class* desc, Util::descendantsList(&klass)) {
-            QString className = desc->toString();
-            
+            QString className = desc->toString();   
             if (includedClasses.contains(className)) {
                 int index = classIndex[className];
                 if (indices.contains(index))
@@ -239,6 +241,10 @@ void SmokeDataFile::write()
                     out << QString("        case %1: return (void*)dynamic_cast<%2*>((%3*)xptr);\n")
                         .arg(index).arg(className).arg(klass.toString());
                 } else {
+                    if (klass.toString().isEmpty())
+                      out << QString("        case %1: return (void*)(%2*)xptr;\n")
+                        .arg(index).arg(className);
+                    else
                     out << QString("        case %1: return (void*)(%2*)(%3*)xptr;\n")
                         .arg(index).arg(className).arg(klass.toString());
                 }
