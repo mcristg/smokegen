@@ -87,6 +87,10 @@ void SmokeClassFiles::write(const QList<QString>& keys)
         }
 
         fileOut << "\n#include <smoke.h>\n#include <" << Options::module << "_smoke.h>\n";
+	
+	// Use namespace?
+	for (QString& str : Options::moduleNamespaces)
+	  fileOut << "\nusing namespace " << str << ";\n";	
 
         fileOut << "\nclass __internal_SmokeClass {};\n";
 
