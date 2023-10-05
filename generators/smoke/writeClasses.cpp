@@ -77,7 +77,13 @@ void SmokeClassFiles::write(const QList<QString>& keys)
                 continue;
             if (str.startsWith("/builtins/"))
                 str.remove(0, 10);
-            fileOut << "#include <" << str << ">\n";
+	    // windows problem
+	    if (str.contains('\\'))
+	      str.replace('\\', '/');
+	    QStringList strlst = str.split('/');
+	    // Avoid error: redefinition by inclusion of file.h
+	    if (!Options::excludeIncFiles.contains(strlst.last()))
+	      fileOut << "#include <" << str << ">\n";
         }
 
         fileOut << "\n#include <smoke.h>\n#include <" << Options::module << "_smoke.h>\n";
