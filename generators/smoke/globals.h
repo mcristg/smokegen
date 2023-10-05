@@ -54,6 +54,11 @@ struct Options
     static QStringList voidpTypes;
     static QList<QFileInfo> headerList;
     static QStringList classList;
+    
+    static QStringList moduleNamespaces;
+    static QStringList excludeIncFiles;
+    static QStringList needOpNew;
+    
     static bool qtMode;
     static QList<QRegularExpression> excludeExpressions;
     static QList<QRegularExpression> includeFunctionNames;

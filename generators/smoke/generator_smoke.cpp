@@ -45,6 +45,11 @@ QStringList Options::parentModules;
 QDir Options::libDir;
 QStringList Options::scalarTypes;
 QStringList Options::voidpTypes;
+
+QStringList Options::moduleNamespaces;
+QStringList Options::excludeIncFiles;
+QStringList Options::needOpNew;
+
 bool Options::qtMode = false;
 QList<QRegularExpression> Options::excludeExpressions;
 QList<QRegularExpression> Options::includeFunctionNames;
@@ -60,6 +65,81 @@ static void showUsage()
     "    -st <comma-seperated list of types that should be munged to scalars>" << std::endl <<
     "    -vt <comma-seperated list of types that should be mapped to Smoke::t_voidp>" << std::endl <<
     "    -L <directory containing parent libs> (parent smoke libs can be located in a <modulename> subdirectory>)" << std::endl;
+}
+
+void XmlStreamparse_smokeConfig(QFileInfo smokeConfig)
+{
+  if (smokeConfig.exists()) {
+    QFile file(smokeConfig.filePath());
+    file.open(QIODevice::ReadOnly);
+    QXmlStreamReader reader(&file);
+
+    while(!reader.atEnd() && !reader.hasError()) {
+      // Read next element.
+      QXmlStreamReader::TokenType token = reader.readNext();
+      const auto tag = reader.name();
+      // If token is just StartDocument, we'll go to next.
+      if (token == QXmlStreamReader::StartDocument) {
+	continue;
+      }
+      // If token is StartElement, we'll see if we can read it.
+      if (token == QXmlStreamReader::StartElement) {
+	if (tag.toString() == "outputDir") {
+	  Options::outputDir = QDir(reader.readElementText());
+	} else if (tag.toString() == "moduleName") {
+	  Options::module = reader.readElementText();
+	} else if (tag.toString() == "parts") {
+	  Options::parts = reader.readElementText().toInt();
+	} else if (tag.toString() == "parentModules") {
+	  while (reader.readNextStartElement())
+	    if (reader.name().toString() == "module")
+	      Options::parentModules << reader.readElementText();
+	} else if (tag.toString() == "scalarTypes") {
+	  while (reader.readNextStartElement())
+	    if (reader.name().toString() == "typeName")
+	      Options::scalarTypes << reader.readElementText();
+	} else if (tag.toString() == "voidpTypes") {
+	  while (reader.readNextStartElement())
+	    if (reader.name().toString() == "typeName")
+	      Options::voidpTypes << reader.readElementText();
+	} else if (tag.toString() == "classList") {
+	  while (reader.readNextStartElement())
+	    if (reader.name().toString() == "class")
+	      Options::classList << reader.readElementText();
+	} else if (tag.toString() == "exclude") {
+	  while (reader.readNextStartElement())
+	    if (reader.name().toString() == "signature")
+	      Options::excludeExpressions << QRegularExpression(reader.readElementText());
+	} else if (tag.toString() == "functions") {
+	  while (reader.readNextStartElement())
+	    if (reader.name().toString() == "name") {
+	      Options::includeFunctionNames << QRegularExpression(reader.readElementText());
+	    } else if (reader.name().toString() == "signature")
+	      Options::includeFunctionSignatures << QRegularExpression(reader.readElementText());
+	} else if (tag.toString() == "moduleNamespaces") {
+	  while (reader.readNextStartElement())
+	    if (reader.name().toString() == "namespace")
+	      Options::moduleNamespaces << reader.readElementText();
+	} else if (tag.toString() == "excludeIncFiles") {
+	  while (reader.readNextStartElement())
+	    if (reader.name().toString() == "excludeIncFile")
+	      Options::excludeIncFiles << reader.readElementText();
+	} else if (tag.toString() == "needOpNew") {
+	  while (reader.readNextStartElement())
+	    if (reader.name().toString() == "class")
+	      Options::needOpNew << reader.readElementText();
+	}
+      }
+    }
+    // Error handling.
+    if (reader.hasError()) {
+      qDebug() << reader.errorString();
+    }
+    reader.clear();
+    file.close();
+  } else {
+    qWarning() << "Couldn't find config file" << smokeConfig.filePath();
+  }
 }
 
 extern "C" Q_DECL_EXPORT
@@ -103,113 +183,8 @@ int generate()
             return EXIT_SUCCESS;
         }
     }
-    
-    if (smokeConfig.exists()) {
-        QFile file(smokeConfig.filePath());
-        file.open(QIODevice::ReadOnly);
-        QDomDocument doc;
-        doc.setContent(file.readAll());
-        file.close();
-        QDomElement root = doc.documentElement();
-        QDomNode node = root.firstChild();
-        while (!node.isNull()) {
-            QDomElement elem = node.toElement();
-            if (elem.isNull()) {
-                node = node.nextSibling();
-                continue;
-            }
-            if (elem.tagName() == "outputDir") {
-                Options::outputDir = QDir(elem.text());
-            } else if (elem.tagName() == "moduleName") {
-                Options::module = elem.text();
-            } else if (elem.tagName() == "parts") {
-                Options::parts = elem.text().toInt();
-            } else if (elem.tagName() == "parentModules") {
-                QDomNode parent = elem.firstChild();
-                while (!parent.isNull()) {
-                    QDomElement elem = parent.toElement();
-                    if (elem.isNull()) {
-                        parent = parent.nextSibling();
-                        continue;
-                    }
-                    if (elem.tagName() == "module") {
-                        Options::parentModules << elem.text();
-                    }
-                    parent = parent.nextSibling();
-                }
-            } else if (elem.tagName() == "scalarTypes") {
-                QDomNode typeName = elem.firstChild();
-                while (!typeName.isNull()) {
-                    QDomElement elem = typeName.toElement();
-                    if (elem.isNull()) {
-                        typeName = typeName.nextSibling();
-                        continue;
-                    }
-                    if (elem.tagName() == "typeName") {
-                        Options::scalarTypes << elem.text();
-                    }
-                    typeName = typeName.nextSibling();
-                }
-            } else if (elem.tagName() == "voidpTypes") {
-                QDomNode typeName = elem.firstChild();
-                while (!typeName.isNull()) {
-                    QDomElement elem = typeName.toElement();
-                    if (elem.isNull()) {
-                        typeName = typeName.nextSibling();
-                        continue;
-                    }
-                    if (elem.tagName() == "typeName") {
-                        Options::voidpTypes << elem.text();
-                    }
-                    typeName = typeName.nextSibling();
-                }
-            } else if (elem.tagName() == "classList") {
-                QDomNode klass = elem.firstChild();
-                while (!klass.isNull()) {
-                    QDomElement elem = klass.toElement();
-                    if (elem.isNull()) {
-                        klass = klass.nextSibling();
-                        continue;
-                    }
-                    if (elem.tagName() == "class") {
-                        Options::classList << elem.text();
-                    }
-                    klass = klass.nextSibling();
-                }
-            } else if (elem.tagName() == "exclude") {
-                QDomNode typeName = elem.firstChild();
-                while (!typeName.isNull()) {
-                    QDomElement elem = typeName.toElement();
-                    if (elem.isNull()) {
-                        typeName = typeName.nextSibling();
-                        continue;
-                    }
-                    if (elem.tagName() == "signature") {
-                      Options::excludeExpressions << QRegularExpression(elem.text());
-                    }
-                    typeName = typeName.nextSibling();
-                }
-            } else if (elem.tagName() == "functions") {
-                QDomNode function = elem.firstChild();
-                while (!function.isNull()) {
-                    QDomElement elem = function.toElement();
-                    if (elem.isNull()) {
-                        function = function.nextSibling();
-                        continue;
-                    }
-                    if (elem.tagName() == "name") {
-                      Options::includeFunctionNames << QRegularExpression(elem.text());
-                    } else if (elem.tagName() == "signature") {
-                      Options::includeFunctionSignatures << QRegularExpression(elem.text());
-                    }
-                    function = function.nextSibling();
-                }
-            }
-            node = node.nextSibling();
-        }
-    } else {
-        qWarning() << "Couldn't find config file" << smokeConfig.filePath();
-    }
+
+    XmlStreamparse_smokeConfig(smokeConfig);
     
     if (!Options::outputDir.exists()) {
         qWarning() << "output directoy" << Options::outputDir.path() << "doesn't exist; creating it...";
