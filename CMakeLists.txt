@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.11)
 project(smokegenerator)
 
-find_package(Qt5 COMPONENTS Core Xml REQUIRED)
+find_package(Qt5 COMPONENTS Core REQUIRED)
 
 find_package(LLVM REQUIRED CONFIG)
 find_package(Clang REQUIRED CONFIG)
@@ -91,7 +91,6 @@ llvm_map_components_to_libnames(
 
 target_link_libraries(smokegen
     Qt5::Core
-    Qt5::Xml
     clangAST
     clangAnalysis
     clangBasic
@@ -144,7 +143,6 @@ if (WIN32)
         TARGET smokegen POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             $<TARGET_FILE:Qt5::Core>
-            $<TARGET_FILE:Qt5::Xml>
             $<TARGET_FILE_DIR:smokegen>
     )
 
@@ -160,7 +158,6 @@ if (WIN32)
     # directory
     install(FILES
         $<TARGET_FILE:Qt5::Core>
-        $<TARGET_FILE:Qt5::Xml>
         DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
     )
 endif (WIN32)

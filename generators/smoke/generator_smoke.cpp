@@ -25,7 +25,7 @@
 #include <QString>
 #include <QtDebug>
 
-#include <QtXml>
+#include <QXmlStreamReader>
 #include <QRegularExpression>
 
 #include <iostream>
@@ -67,7 +67,7 @@ static void showUsage()
     "    -L <directory containing parent libs> (parent smoke libs can be located in a <modulename> subdirectory>)" << std::endl;
 }
 
-void XmlStreamparse_smokeConfig(QFileInfo smokeConfig)
+static void XmlStreamparse_smokeConfig(QFileInfo &smokeConfig)
 {
   if (smokeConfig.exists()) {
     QFile file(smokeConfig.filePath());
@@ -91,43 +91,61 @@ void XmlStreamparse_smokeConfig(QFileInfo smokeConfig)
 	} else if (tag.toString() == "parts") {
 	  Options::parts = reader.readElementText().toInt();
 	} else if (tag.toString() == "parentModules") {
-	  while (reader.readNextStartElement())
-	    if (reader.name().toString() == "module")
+	  while (reader.readNextStartElement()) {
+	    if (reader.name().toString() == "module") {
 	      Options::parentModules << reader.readElementText();
+	    }
+	  }	    
 	} else if (tag.toString() == "scalarTypes") {
-	  while (reader.readNextStartElement())
-	    if (reader.name().toString() == "typeName")
+	  while (reader.readNextStartElement()) {
+	    if (reader.name().toString() == "typeName") {
 	      Options::scalarTypes << reader.readElementText();
+	    }
+	  }
 	} else if (tag.toString() == "voidpTypes") {
-	  while (reader.readNextStartElement())
-	    if (reader.name().toString() == "typeName")
+	  while (reader.readNextStartElement()) {
+	    if (reader.name().toString() == "typeName") {
 	      Options::voidpTypes << reader.readElementText();
+	    }
+	  }
 	} else if (tag.toString() == "classList") {
-	  while (reader.readNextStartElement())
-	    if (reader.name().toString() == "class")
+	  while (reader.readNextStartElement()) {
+	    if (reader.name().toString() == "class") {
 	      Options::classList << reader.readElementText();
+	    }
+	  }
 	} else if (tag.toString() == "exclude") {
-	  while (reader.readNextStartElement())
-	    if (reader.name().toString() == "signature")
+	  while (reader.readNextStartElement()) {
+	    if (reader.name().toString() == "signature") {
 	      Options::excludeExpressions << QRegularExpression(reader.readElementText());
+	    }
+	  }
 	} else if (tag.toString() == "functions") {
-	  while (reader.readNextStartElement())
+	  while (reader.readNextStartElement()) {
 	    if (reader.name().toString() == "name") {
 	      Options::includeFunctionNames << QRegularExpression(reader.readElementText());
-	    } else if (reader.name().toString() == "signature")
+	    } else if (reader.name().toString() == "signature") {
 	      Options::includeFunctionSignatures << QRegularExpression(reader.readElementText());
+	    }
+	  }
 	} else if (tag.toString() == "moduleNamespaces") {
-	  while (reader.readNextStartElement())
-	    if (reader.name().toString() == "namespace")
+	  while (reader.readNextStartElement()) {
+	    if (reader.name().toString() == "namespace") {
 	      Options::moduleNamespaces << reader.readElementText();
+	    }
+	  }
 	} else if (tag.toString() == "excludeIncFiles") {
-	  while (reader.readNextStartElement())
-	    if (reader.name().toString() == "excludeIncFile")
+	  while (reader.readNextStartElement()) {
+	    if (reader.name().toString() == "excludeIncFile") {
 	      Options::excludeIncFiles << reader.readElementText();
+	    }
+	  }
 	} else if (tag.toString() == "needOpNew") {
-	  while (reader.readNextStartElement())
-	    if (reader.name().toString() == "class")
+	  while (reader.readNextStartElement()) {
+	    if (reader.name().toString() == "class") {
 	      Options::needOpNew << reader.readElementText();
+	    }
+	  }
 	}
       }
     }

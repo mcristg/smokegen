@@ -23,7 +23,7 @@
 #include <QFileInfo>
 #include <QLibrary>
 
-#include <QtXml>
+#include <QXmlStreamReader>
 
 #include <QtDebug>
 
@@ -120,66 +120,58 @@ int main(int argc, char **argv)
             ParserOptions::headerList << QFileInfo(args[i]);
         }
     }
-        
-    if (configFile.exists()) {
-        QFile file(configFile.filePath());
-        file.open(QIODevice::ReadOnly);
-        QDomDocument doc;
-        doc.setContent(file.readAll());
-        file.close();
-        QDomElement root = doc.documentElement();
-        QDomNode node = root.firstChild();
-        while (!node.isNull()) {
-            QDomElement elem = node.toElement();
-            if (elem.isNull()) {
-                node = node.nextSibling();
-                continue;
-            }
-            if (elem.tagName() == "resolveTypedefs") {
-                ParserOptions::resolveTypedefs = (elem.text() == "true");
-            } else if (elem.tagName() == "qtMode") {
-                ParserOptions::qtMode = (elem.text() == "true");
-            } else if (!hasCommandLineGenerator && elem.tagName() == "generator") {
-                generator = elem.text();
-            } else if (elem.tagName() == "includeDirs") {
-                QDomNode dir = elem.firstChild();
-                while (!dir.isNull()) {
-                    QDomElement elem = dir.toElement();
-                    if (elem.isNull()) {
-                        dir = dir.nextSibling();
-                        continue;
-                    }
-                    if (elem.tagName() == "dir") {
-                        ParserOptions::includeDirs << QDir(elem.text());
-                    }
-                    else if (elem.tagName() == "framework") {
-                        ParserOptions::frameworkDirs << QDir(elem.text());
-                    }
-                    dir = dir.nextSibling();
-                }
-            } else if (elem.tagName() == "definesList") {
-                // reference to an external file, so it can be auto-generated
-                ParserOptions::definesList = QFileInfo(elem.text());
-            } else if (elem.tagName() == "dropMacros") {
-                QDomNode macro = elem.firstChild();
-                while (!macro.isNull()) {
-                    QDomElement elem = macro.toElement();
-                    if (elem.isNull()) {
-                        macro = macro.nextSibling();
-                        continue;
-                    }
-                    if (elem.tagName() == "name") {
-                        ParserOptions::dropMacros << elem.text();
-                    }
-                    macro = macro.nextSibling();
-                }
-            }
-            node = node.nextSibling();
-        }
-    } else {
-        qWarning() << "Couldn't find config file" << configFile.filePath();
-    }
 
+    if (configFile.exists()) {
+      QFile file(configFile.filePath());
+      file.open(QIODevice::ReadOnly);
+      QXmlStreamReader reader(&file);
+
+      while(!reader.atEnd() && !reader.hasError()) {
+	// Read next element.
+	QXmlStreamReader::TokenType token = reader.readNext();
+	const auto tag = reader.name();
+	// If token is just StartDocument, we'll go to next.
+	if (token == QXmlStreamReader::StartDocument) {
+	  continue;
+	}
+	// If token is StartElement, we'll see if we can read it.
+	if (token == QXmlStreamReader::StartElement) {
+	  if (tag.toString() == "resolveTypedefs") {
+	    ParserOptions::qtMode = (reader.readElementText() == "true");
+	  } else if (tag.toString() == "qtMode") {
+	    ParserOptions::qtMode = (reader.readElementText() == "true");
+	  } else if (!hasCommandLineGenerator && tag.toString() == "generator") {
+	    generator = reader.readElementText();
+	  } else if (tag.toString() == "includeDirs") {
+	    while (reader.readNextStartElement()) {
+	      if (reader.name().toString() == "dir") {
+		ParserOptions::includeDirs << QDir(reader.readElementText());
+	      } else if (reader.name().toString() == "framework") {
+		ParserOptions::frameworkDirs << QDir(reader.readElementText());
+	      }
+	    }
+	  } else if (tag.toString() == "definesList") {
+	    // reference to an external file, so it can be auto-generated
+	    ParserOptions::definesList = QFileInfo(reader.readElementText());
+	  } else if (tag.toString() == "dropMacros") {
+	    while (reader.readNextStartElement()) {
+	      if (reader.name().toString() == "name") {
+		ParserOptions::dropMacros << reader.readElementText();
+	      }
+	    }
+	  }
+	}
+      }
+      // Error handling.
+      if (reader.hasError()) {
+	qDebug() << reader.errorString();
+      }
+      reader.clear();
+      file.close();
+    } else {
+      qWarning() << "Couldn't find config file" << configFile.filePath();
+    }
+    
     // first try to load plugins from the executable's directory
     QLibrary lib(app.applicationDirPath() + "/generator_" + generator);
     lib.load();
