@@ -58,6 +58,9 @@ struct Options
     static QStringList moduleNamespaces;
     static QStringList excludeIncFiles;
     static QStringList needOpNew;
+    static QStringList doubleConditions;
+    static QStringList tripleConditions;
+    static QStringList OverridesFinalFunctions;
     
     static bool qtMode;
     static QList<QRegularExpression> excludeExpressions;

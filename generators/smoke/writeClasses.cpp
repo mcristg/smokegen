@@ -138,7 +138,8 @@ QString SmokeClassFiles::generateMethodBody(const QString& indent, const QString
         if (!(meth.flags() & Method::Static)) {
             QString objName = privateDestructor ? "obj" : "this";
             if (meth.isConst()) {
-                out << "((const " << (privateDestructor ? className : smokeClassName) << QString("*)%1)->").arg(objName);
+	      Options::OverridesFinalFunctions.contains(meth.name()) ? out << "((" : out << "((const ";
+	      out << (privateDestructor ? className : smokeClassName) << QString("*)%1)->").arg(objName);
             } else {
                 out << QString("%1->").arg(objName);
             }
@@ -147,8 +148,18 @@ QString SmokeClassFiles::generateMethodBody(const QString& indent, const QString
             // dynamic dispatch not wanted, call with 'this->Foo::method()'
             out << className << "::";
         } else if (func) {
-            if (!func->nameSpace().isEmpty())
-                out << func->nameSpace() << "::";
+	  if (!func->nameSpace().isEmpty()) {
+	    bool condition = false;
+	    for (QString& str : Options::doubleConditions) {
+	      QStringList strlst = str.split('|');
+	      if (meth.name().contains(strlst.at(0)) || meth.name().contains(strlst.at(1))) {
+	    	condition = true;
+		break;
+	      }
+	    }
+	    if (!condition)
+	      out << func->nameSpace() << "::";
+	  }
         }
         out << meth.name() << "(";
     }
@@ -182,7 +193,18 @@ QString SmokeClassFiles::generateMethodBody(const QString& indent, const QString
           // casting to a reference doesn't make sense in this case
           if (param.type()->isRef() && !param.type()->isFunctionPointer()) typeName.replace('&', "");
         }
-        out << "(" << typeName << ")" << "x[" << j + 1 << "]." << field;
+        bool condition = false;
+	// Reference to ‘identifier’ is ambiguous?
+	for (QString& str : Options::tripleConditions) {
+	  QStringList strlst = str.split('|');
+	  if (smokeClassName.contains(strlst.at(0)) && (meth.name().contains(strlst.at(1)) || meth.name().contains(strlst.at(2)))) {
+	    out << "(" << strlst.at(0) << "::" << typeName << ")" << "x[" << j + 1 << "]." << field;
+	    condition = true;
+	    break;
+	  }
+	}
+	if (!condition)
+	  out << "(" << typeName << ")" << "x[" << j + 1 << "]." << field;
     }
 
     // if the method has any other default parameters, append them here as values
@@ -348,7 +370,8 @@ void SmokeClassFiles::generateVirtualMethod(QTextStream& out, const Method& meth
     }
     out << ") ";
     if (meth.isConst())
-        out << "const ";
+      if (!Options::OverridesFinalFunctions.contains(meth.name()))
+	out << "const ";
     if (meth.hasExceptionSpec()) {
         out << "throw(";
         for (int i = 0; i < meth.exceptionTypes().count(); i++) {

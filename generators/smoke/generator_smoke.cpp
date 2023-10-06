@@ -49,6 +49,9 @@ QStringList Options::voidpTypes;
 QStringList Options::moduleNamespaces;
 QStringList Options::excludeIncFiles;
 QStringList Options::needOpNew;
+QStringList Options::doubleConditions;
+QStringList Options::tripleConditions;
+QStringList Options::OverridesFinalFunctions;
 
 bool Options::qtMode = false;
 QList<QRegularExpression> Options::excludeExpressions;
@@ -146,6 +149,24 @@ static void XmlStreamparse_smokeConfig(QFileInfo &smokeConfig)
 	      Options::needOpNew << reader.readElementText();
 	    }
 	  }
+	} else if (tag.toString() == "doubleConditions") {
+	  while (reader.readNextStartElement()) {
+	    if (reader.name().toString() == "doubleCondition") {
+	      Options::doubleConditions << reader.readElementText();
+	    }
+	  }
+	} else if (tag.toString() == "tripleConditions") {
+	  while (reader.readNextStartElement()) {
+	    if (reader.name().toString() == "tripleCondition") {
+	      Options::tripleConditions << reader.readElementText();
+	    }
+	  }
+	} else if (tag.toString() == "OverridesFinalFunctions") {
+	  while (reader.readNextStartElement()) {
+	    if (reader.name().toString() == "name") {
+	      Options::OverridesFinalFunctions << reader.readElementText();
+	    }
+	  }  
 	}
       }
     }
