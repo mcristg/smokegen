@@ -33,7 +33,6 @@ class QStack;
 class QDir;
 class QFileInfo;
 class QString;
-class QStringList;
 class QTextStream;
 
 class Class;

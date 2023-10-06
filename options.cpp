@@ -19,7 +19,6 @@
 #include <QDir>
 #include <QFileInfo>
 #include <QList>
-#include <QRegExp>
 #include <QSet>
 
 #include "options.h"

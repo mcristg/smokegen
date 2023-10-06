@@ -28,7 +28,6 @@ class QSet;
 template<typename T>
 class QList;
 class QRegExp;
-class QStringList;
 
 class Typedef;
 

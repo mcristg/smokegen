@@ -18,6 +18,7 @@
 
 #include <QCoreApplication>
 #include <QList>
+#include <QStringList>
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
