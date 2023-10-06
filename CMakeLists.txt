@@ -1,7 +1,12 @@
 cmake_minimum_required(VERSION 2.8.11)
 project(smokegenerator)
 
-find_package(Qt5 COMPONENTS Core REQUIRED)
+if (NOT SMOKE_QT_VERSION)
+    set(SMOKE_QT_VERSION 5)
+endif()
+set(QT_VERSION Qt${SMOKE_QT_VERSION})
+
+find_package(${QT_VERSION} COMPONENTS Core REQUIRED)
 
 find_package(LLVM REQUIRED CONFIG)
 find_package(Clang REQUIRED CONFIG)
@@ -90,7 +95,7 @@ llvm_map_components_to_libnames(
 )
 
 target_link_libraries(smokegen
-    Qt5::Core
+    ${QT_VERSION}::Core
     clangAST
     clangAnalysis
     clangBasic
@@ -142,7 +147,7 @@ if (WIN32)
     add_custom_command(
         TARGET smokegen POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            $<TARGET_FILE:Qt5::Core>
+            $<TARGET_FILE:${QT_VERSION}::Core>
             $<TARGET_FILE_DIR:smokegen>
     )
 
@@ -157,7 +162,7 @@ if (WIN32)
     # Make sure the dependent Qt dlls are copied to the smokegen executable
     # directory
     install(FILES
-        $<TARGET_FILE:Qt5::Core>
+        $<TARGET_FILE:${QT_VERSION}::Core>
         DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
     )
 endif (WIN32)
@@ -170,3 +175,6 @@ add_subdirectory(generators)
 add_subdirectory(smokeapi)
 add_subdirectory(smokebase)
 add_subdirectory(deptool)
+
+unset(SMOKE_QT_VERSION CACHE)
+
