@@ -135,7 +135,13 @@ QString SmokeClassFiles::generateMethodBody(const QString& indent, const QString
             out << "class QByteArray" << " xret = ";
           else		  
 #endif
-            out << meth.type()->toString() << " xret = ";
+          {
+	    QString typeName = meth.type()->toString();
+	    // Reference to pointer?
+	    if (typeName.contains("*&"))
+	      typeName.replace("&", "");
+	    out << typeName << " xret = ";
+         }   
         }
         if (!(meth.flags() & Method::Static)) {
             QString objName = privateDestructor ? "obj" : "this";
