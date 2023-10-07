@@ -192,6 +192,12 @@ QString SmokeClassFiles::generateMethodBody(const QString& indent, const QString
             typeName.append('*');
             out << '*';
           }
+          // Erroneous cast. Reference to pointer '&(*)' in function pointer.
+	  for (QString& str : Options::doubleConditions) {
+	    QStringList strlst = str.split('|');
+	    if (typeName.contains(strlst.at(1)) && meth.name().contains(strlst.at(0)))
+	      typeName.replace("&", "");
+	  }
           // casting to a reference doesn't make sense in this case
           if (param.type()->isRef() && !param.type()->isFunctionPointer()) typeName.replace('&', "");
         }
