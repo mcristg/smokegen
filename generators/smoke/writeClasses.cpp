@@ -197,7 +197,7 @@ QString SmokeClassFiles::generateMethodBody(const QString& indent, const QString
             // references and classes are passed in s_class
             typeName.append('*');
             out << '*';
-          }
+          } 
           // Erroneous cast. Reference to pointer '&(*)' in function pointer.
 	  for (QString& str : Options::doubleConditions) {
 	    QStringList strlst = str.split('|');
@@ -488,6 +488,11 @@ void SmokeClassFiles::writeClass(QTextStream& out, const Class* klass, const QSt
         out << "        _binding = (SmokeBinding*)x[1].s_class;\n";
         out << "    }\n";
         
+        for (QString& str : Options::needOpNew) {
+	  if (str.contains(className))
+	    out << "    static void* operator new(std::size_t siz) { return ::new char[siz]; }\n";
+        }
+              
         switchOut << "        case 0: xself->x_0(args);\tbreak;\n";
     } else {
         out << "public:\n";
