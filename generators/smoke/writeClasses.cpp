@@ -334,7 +334,7 @@ void SmokeClassFiles::generateSetAccessor(QTextStream& out, const QString& class
     cast.replace("&", "");
     // C++ haven't first class arrays.
     if (cast.contains("[") && (unionField == "s_class" && type->pointerDepth() == 0)) {
-      QStringList list1 = cast.split("[", Qt::SkipEmptyParts);
+      QStringList list1 = field.toString().split("[", Qt::SkipEmptyParts);
       QStringList list2 = list1.at(1).split("]", Qt::SkipEmptyParts);
       int siz = list2.at(0).toInt();
       out << "        " << "std::memcpy(" << fieldName << ", x[1].s_class, " << siz
