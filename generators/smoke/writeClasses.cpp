@@ -113,6 +113,7 @@ QString SmokeClassFiles::generateMethodBody(const QString& indent, const QString
 {
     QString methodBody;
     QTextStream out(&methodBody);
+    bool paramArrRef = false;
 
     out << indent;
 
@@ -194,10 +195,22 @@ QString SmokeClassFiles::generateMethodBody(const QString& indent, const QString
             out << '*';
           }
           else if (field == "s_class" && (param.type()->pointerDepth() == 0 || param.type()->isRef()) && !param.type()->isFunctionPointer()) {
-            // references and classes are passed in s_class
-            typeName.append('*');
-            out << '*';
-          } 
+	    // pass an array by reference
+	    if (param.type()->toString().remove(QRegularExpression(" ")).contains("]&")) {
+	      QString str = param.type()->toString();
+	      // double const
+	      if (str.count("const") > 1)
+	        str.remove(0, 6);
+	      QStringList stl = str.split("[");
+	      typeName = stl.at(0) + "(&)[" + stl.at(1).split("]").at(0) + "]";
+	      // & bypass removal.
+	      paramArrRef = true;
+	    } else {
+	      // references and classes are passed in s_class
+	      typeName.append('*');
+	      out << '*';
+	    }
+	  }
           // Erroneous cast. Reference to pointer '&(*)' in function pointer.
 	  for (QString& str : Options::doubleConditions) {
 	    QStringList strlst = str.split('|');
@@ -205,7 +218,8 @@ QString SmokeClassFiles::generateMethodBody(const QString& indent, const QString
 	      typeName.replace("&", "");
 	  }
           // casting to a reference doesn't make sense in this case
-          if (param.type()->isRef() && !param.type()->isFunctionPointer()) typeName.replace('&', "");
+          if (param.type()->isRef() && !param.type()->isFunctionPointer() && !paramArrRef)
+            typeName.replace('&', "");
         }
         bool condition = false;
 	// Reference to ‘identifier’ is ambiguous?
@@ -219,7 +233,7 @@ QString SmokeClassFiles::generateMethodBody(const QString& indent, const QString
 	}
 	if (!condition)
 	  out << "(" << typeName << ")" << "x[" << j + 1 << "]." << field;
-    }
+    } // for
 
     // if the method has any other default parameters, append them here as values
     if (!meth.remainingDefaultValues().isEmpty()) {
@@ -301,11 +315,21 @@ void SmokeClassFiles::generateMethod(QTextStream& out, const QString& className,
 	    // Correctly make the function pointer in the parameter.
 	    if (meth.parameters()[i].type()->isFunctionPointer())
 	      out << param.replace("(*)","(*x" + QString::number(i + 1) + ")");
-	    else
-            out << meth.parameters()[i].type()->toString() << " x" << QString::number(i + 1);
-	    x_list << "x" + QString::number(i + 1);
-        }
-        out << ") : " << meth.getClass()->name() << '(' << x_list.join(", ") << ") {}\n";
+	    else {
+	      // pass an array by reference
+	      QString str = param;
+	      if (str.remove(QRegularExpression(" ")).contains("]&")) {
+		// double const
+		if (param.count("const") > 1)
+		  param.remove(0, 6);
+		QStringList stl = param.split("[");
+		out << stl.at(0) << "(&x" + QString::number(i + 1) << ")[" << stl.at(1).split("]").at(0) << "]";
+	      } else
+		out << param << " x" << QString::number(i + 1);
+	      x_list << "x" + QString::number(i + 1);
+	    }
+	}
+	out << ") : " << meth.getClass()->name() << '(' << x_list.join(", ") << ") {}\n";
     }
 }
 
