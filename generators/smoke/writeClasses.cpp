@@ -255,7 +255,7 @@ QString SmokeClassFiles::generateMethodBody(const QString& indent, const QString
     if (meth.type() != Type::Void) {
       auto field = Util::stackItemField(meth.type());
       if (field == "s_enum")
-        out << indent << "x[0]." << field << " = static_cast<long>(" << Util::assignmentString(meth.type(), "xret") << ");\n";
+        out << indent << "x[0]." << field << " = " << Util::assignmentString(meth.type(), "xret") << ";\n";
       else
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))                
         // Dirty hack, stupidy compiler error (::QByteArray name() const). Qt 5.15.2

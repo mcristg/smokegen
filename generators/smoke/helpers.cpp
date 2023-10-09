@@ -708,7 +708,7 @@ QString Util::assignmentString(const Type* type, const QString& var)
     } else if (type->isIntegral() && !Options::voidpTypes.contains(type->name())) {
         return var;
     } else if (type->getEnum()) {
-        return var;
+        return "static_cast<long>(" + var + ")";
     } else if (Options::qtMode && type->getClass() && type->getClass()->isTemplate() && type->getClass()->name() == "QFlags")
     {
         return "(uint)" + var;
