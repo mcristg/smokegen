@@ -326,8 +326,8 @@ void SmokeClassFiles::generateMethod(QTextStream& out, const QString& className,
 		out << stl.at(0) << "(&x" + QString::number(i + 1) << ")[" << stl.at(1).split("]").at(0) << "]";
 	      } else
 		out << param << " x" << QString::number(i + 1);
-	      x_list << "x" + QString::number(i + 1);
 	    }
+	    x_list << "x" + QString::number(i + 1);
 	}
 	out << ") : " << meth.getClass()->name() << '(' << x_list.join(", ") << ") {}\n";
     }
