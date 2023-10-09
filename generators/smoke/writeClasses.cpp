@@ -218,8 +218,11 @@ QString SmokeClassFiles::generateMethodBody(const QString& indent, const QString
 	      typeName.replace("&", "");
 	  }
           // casting to a reference doesn't make sense in this case
-          if (param.type()->isRef() && !param.type()->isFunctionPointer() && !paramArrRef)
-            typeName.replace('&', "");
+          if (param.type()->isRef() && !param.type()->isFunctionPointer() && !paramArrRef) {
+	    //Multiples '&' example "const std::function<void (const QWebEngineFindTextResult &)>&"
+	    int pos = typeName.lastIndexOf('&');
+	    typeName.replace(pos,1, ' ');
+	  }   
         }
         bool condition = false;
 	// Reference to ‘identifier’ is ambiguous?
