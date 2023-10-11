@@ -60,7 +60,8 @@ struct Options
     static QStringList doubleConditions;
     static QStringList tripleConditions;
     static QStringList OverridesFinalFunctions;
-    
+    static QStringList constructorDeniesRemainingDefaultValue;
+
     static bool qtMode;
     static QList<QRegularExpression> excludeExpressions;
     static QList<QRegularExpression> includeFunctionNames;

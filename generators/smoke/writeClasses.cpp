@@ -238,8 +238,18 @@ QString SmokeClassFiles::generateMethodBody(const QString& indent, const QString
 	  out << "(" << typeName << ")" << "x[" << j + 1 << "]." << field;
     } // for
 
-    // if the method has any other default parameters, append them here as values
-    if (!meth.remainingDefaultValues().isEmpty()) {
+    // if the method is constructor and check if the constructor needs remaining default values
+    bool aceptRemainingDefaultValues = true;
+    if (meth.isConstructor()) {
+      for (QString& str : Options::constructorDeniesRemainingDefaultValue) {
+	if (meth.name().contains(str)) {
+	  aceptRemainingDefaultValues = false;
+	  break;
+	}
+      }
+    }
+    // if the method has any other default parameters, append them here as values     
+    if (!meth.remainingDefaultValues().isEmpty() && aceptRemainingDefaultValues) {
       QStringList  defaultParams = QStringList(meth.remainingDefaultValues());
       QString substituted;
       //Avoid error : reference to type 'const ClassName' cannot bind to an initializer list

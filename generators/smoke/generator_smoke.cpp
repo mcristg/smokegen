@@ -52,6 +52,7 @@ QStringList Options::needOpNew;
 QStringList Options::doubleConditions;
 QStringList Options::tripleConditions;
 QStringList Options::OverridesFinalFunctions;
+QStringList Options::constructorDeniesRemainingDefaultValue;
 
 bool Options::qtMode = false;
 QList<QRegularExpression> Options::excludeExpressions;
@@ -165,6 +166,12 @@ static void XmlStreamparse_smokeConfig(QFileInfo &smokeConfig)
 	  while (reader.readNextStartElement()) {
 	    if (reader.name().toString() == "name") {
 	      Options::OverridesFinalFunctions << reader.readElementText();
+	    }
+	  }  
+	} else if (tag.toString() == "constructorDeniesRemainingDefaultValues") {
+	  while (reader.readNextStartElement()) {
+	    if (reader.name().toString() == "class") {
+	      Options::constructorDeniesRemainingDefaultValue << reader.readElementText();
 	    }
 	  }  
 	}
