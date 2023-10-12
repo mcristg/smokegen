@@ -527,7 +527,7 @@ void SmokeClassFiles::writeClass(QTextStream& out, const Class* klass, const QSt
         
         for (QString& str : Options::needOpNew) {
 	  if (str.contains(className))
-	    out << "    static void* operator new(std::size_t siz) { return ::new char[siz]; }\n";
+	    out << "    static void* operator new(std::size_t siz) {  return ::operator new(siz); }\n";
         }
               
         switchOut << "        case 0: xself->x_0(args);\tbreak;\n";
