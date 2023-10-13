@@ -378,22 +378,28 @@ void SmokeClassFiles::generateSetAccessor(QTextStream& out, const QString& class
     out << "void x_" << index << "(Smoke::Stack x) {\n"
         << "        // " << field.toString() << "=\n";
     QString unionField = Util::stackItemField(type);
-    QString cast = type->toString();
-    cast.replace("&", "");
-    // C++ haven't first class arrays.
-    if (cast.contains("[") && (unionField == "s_class" && type->pointerDepth() == 0)) {
-      QStringList list1 = field.toString().split("[", Qt::SkipEmptyParts);
-      QStringList list2 = list1.at(1).split("]", Qt::SkipEmptyParts);
-      int siz = list2.at(0).toInt();
-      out << "        " << "std::memcpy(" << fieldName << ", x[1].s_class, " << siz
-          << "*sizeof(" <<  list1.at(0) << "));\n";
+    // Converting a void* to a function pointer directly is not allowed.
+    if (type->isFunctionPointer()) {
+      out  << "        " << fieldName << " = " << "reinterpret_cast<" << type->toString()
+	   << ">(reinterpret_cast<std::uintptr_t>(x[1]." << unionField + "));\n";
     } else {
-      out << "        " << fieldName << " = ";
-      if (unionField == "s_class" && type->pointerDepth() == 0) {
-	out << '*';
-	cast += '*';
+      QString cast = type->toString();
+      cast.replace("&", "");
+      // C++ haven't first class arrays.
+      if (cast.contains("[") && (unionField == "s_class" && type->pointerDepth() == 0)) {
+	QStringList list1 = field.toString().split("[", Qt::SkipEmptyParts);
+	QStringList list2 = list1.at(1).split("]", Qt::SkipEmptyParts);
+	int siz = list2.at(0).toInt();
+	out << "        " << "std::memcpy(" << fieldName << ", x[1].s_class, " << siz
+	    << "*sizeof(" <<  list1.at(0) << "));\n";
+      } else {
+	out << "        " << fieldName << " = ";
+	if (unionField == "s_class" && type->pointerDepth() == 0) {
+	  out << '*';
+	  cast += '*';
+	}
+	out << '(' << cast << ')' << "x[1]." << unionField << ";\n";
       }
-      out << '(' << cast << ')' << "x[1]." << unionField << ";\n";
     }
     out << "    }\n";
 }
