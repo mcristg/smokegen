@@ -225,7 +225,9 @@ void SmokeDataFile::write()
                     .arg(index).arg(className).arg(klass.toString());
             }
         }
-        out << QString("        case %1: return (void*)(%2*)xptr;\n").arg(iter.value()).arg(klass.toString());
+        // Sometimes klass.toString() loses information for correct typecasting, use iter.key().
+	out << QString("        case %1: return (void*)(%2*)xptr;\n").arg(iter.value()).arg(iter.key());
+	// out << QString("        case %1: return (void*)(%2*)xptr;\n").arg(iter.value()).arg(klass.toString());
         foreach (const Class* desc, Util::descendantsList(&klass)) {
             QString className = desc->toString();
             
