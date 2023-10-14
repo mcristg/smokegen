@@ -385,6 +385,16 @@ void SmokeClassFiles::generateSetAccessor(QTextStream& out, const QString& class
     } else {
       QString cast = type->toString();
       cast.replace("&", "");
+      // Bad cast, posible bug in parser, find in smokeconfig.xml the 'cast' (OCCT).
+      if (!Options::doubleConditions.isEmpty()) {
+	for (QString& str : Options::doubleConditions) {
+	  QStringList strlst = str.split('|');
+	  if (strlst.at(0) == field.toString()) {
+	    cast = strlst.at(1);
+	    break;
+	  }
+	}
+      }
       // C++ haven't first class arrays.
       if (cast.contains("[") && (unionField == "s_class" && type->pointerDepth() == 0)) {
 	QStringList list1 = field.toString().split("[", Qt::SkipEmptyParts);
