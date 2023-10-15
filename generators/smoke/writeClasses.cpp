@@ -395,6 +395,7 @@ void SmokeClassFiles::generateSetAccessor(QTextStream& out, const QString& class
 	  }
 	}
       }
+       
       // C++ haven't first class arrays.
       if (cast.contains("[") && (unionField == "s_class" && type->pointerDepth() == 0)) {
 	QStringList list1 = field.toString().split("[", Qt::SkipEmptyParts);
@@ -405,7 +406,18 @@ void SmokeClassFiles::generateSetAccessor(QTextStream& out, const QString& class
       } else {
 	out << "        " << fieldName << " = ";
 	if (unionField == "s_class" && type->pointerDepth() == 0) {
-	  out << '*';
+          // operator= is private within this context or delete, use std::memcpy instead (OCCT).
+	  if (!Options::doubleConditions.isEmpty()) {
+	    for (QString& str : Options::doubleConditions) {
+	      QStringList strlst = str.split('|');
+	      if (className == strlst.at(0) && field.toString() == strlst.at(1)) {
+		out << "        " << "std::memcpy(&" << fieldName << ", "
+		    << "(" << cast << "*)x[1].s_class, sizeof(" << className << "));\n    }\n";
+		return;
+	      }
+	    }
+	  }
+	  out << "*";
 	  cast += '*';
 	}
 	out << '(' << cast << ')' << "x[1]." << unionField << ";\n";
