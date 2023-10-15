@@ -378,51 +378,55 @@ void SmokeClassFiles::generateSetAccessor(QTextStream& out, const QString& class
     out << "void x_" << index << "(Smoke::Stack x) {\n"
         << "        // " << field.toString() << "=\n";
     QString unionField = Util::stackItemField(type);
+    
     // Converting a void* to a function pointer directly is not allowed.
     if (type->isFunctionPointer()) {
       out  << "        " << fieldName << " = " << "reinterpret_cast<" << type->toString()
-	   << ">(reinterpret_cast<std::uintptr_t>(x[1]." << unionField + "));\n";
-    } else {
-      QString cast = type->toString();
-      cast.replace("&", "");
-      // Bad cast, posible bug in parser, find in smokeconfig.xml the 'cast' (OCCT).
-      if (!Options::doubleConditions.isEmpty()) {
-	for (QString& str : Options::doubleConditions) {
-	  QStringList strlst = str.split('|');
-	  if (strlst.at(0) == field.toString()) {
-	    cast = strlst.at(1);
-	    break;
-	  }
+	   << ">(reinterpret_cast<std::uintptr_t>(x[1]." << unionField + "));\n" << "    }\n";
+	   return;
+    }
+    
+    QString cast = type->toString();
+    cast.replace("&", "");
+    // Bad cast, posible bug in parser, find in smokeconfig.xml the 'cast' (OCCT).
+    if (!Options::doubleConditions.isEmpty()) {
+      for (QString& str : Options::doubleConditions) {
+	QStringList strlst = str.split('|');
+	if (strlst.at(0) == field.toString()) {
+	  cast = strlst.at(1);
+	  break;
 	}
-      }
-       
-      // C++ haven't first class arrays.
-      if (cast.contains("[") && (unionField == "s_class" && type->pointerDepth() == 0)) {
-	QStringList list1 = field.toString().split("[", Qt::SkipEmptyParts);
-	QStringList list2 = list1.at(1).split("]", Qt::SkipEmptyParts);
-	int siz = list2.at(0).toInt();
-	out << "        " << "std::memcpy(" << fieldName << ", x[1].s_class, " << siz
-	    << "*sizeof(" <<  list1.at(0) << "));\n";
-      } else {
-	out << "        " << fieldName << " = ";
-	if (unionField == "s_class" && type->pointerDepth() == 0) {
-          // operator= is private within this context or delete, use std::memcpy instead (OCCT).
-	  if (!Options::doubleConditions.isEmpty()) {
-	    for (QString& str : Options::doubleConditions) {
-	      QStringList strlst = str.split('|');
-	      if (className == strlst.at(0) && field.toString() == strlst.at(1)) {
-		out << "        " << "std::memcpy(&" << fieldName << ", "
-		    << "(" << cast << "*)x[1].s_class, sizeof(" << className << "));\n    }\n";
-		return;
-	      }
-	    }
-	  }
-	  out << "*";
-	  cast += '*';
-	}
-	out << '(' << cast << ')' << "x[1]." << unionField << ";\n";
       }
     }
+
+    // C++ haven't first class arrays.
+    if (cast.contains("[") && (unionField == "s_class" && type->pointerDepth() == 0)) {
+      QStringList list1 = field.toString().split("[", Qt::SkipEmptyParts);
+      QStringList list2 = list1.at(1).split("]", Qt::SkipEmptyParts);
+      int siz = list2.at(0).toInt();
+      out << "        " << "std::memcpy(" << fieldName << ", x[1].s_class, " << siz
+	  << "*sizeof(" <<  list1.at(0) << "));\n" << "    }\n";
+      return;
+    }
+
+    // operator= is private within this context or delete, use std::memcpy instead (OCCT).
+    if (!Options::doubleConditions.isEmpty() && (unionField == "s_class" && type->pointerDepth() == 0)) {
+      for (QString& str : Options::doubleConditions) {
+	QStringList strlst = str.split('|');
+	if (className == strlst.at(0) && field.toString() == strlst.at(1)) {
+	  out << "        " << "std::memcpy(&" << fieldName << ", "
+	      << "(" << cast << "*)x[1].s_class, sizeof(" << className << "));\n    }\n";
+	  return;
+	}
+      }
+    }
+
+    out << "        " << fieldName << " = ";
+    if (unionField == "s_class" && type->pointerDepth() == 0) {
+      out << "*";
+      cast += '*';
+    }
+    out << '(' << cast << ')' << "x[1]." << unionField << ";\n";
     out << "    }\n";
 }
 
