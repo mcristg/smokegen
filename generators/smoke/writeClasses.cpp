@@ -129,21 +129,28 @@ QString SmokeClassFiles::generateMethodBody(const QString& indent, const QString
         if (meth.type()->isFunctionPointer() || meth.type()->isArray())
             out << meth.type()->toString("xret") << " = ";
         else if (meth.type() != Type::Void) {
-#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))       
-          // Dirty hack, stupidy compiler error (::QByteArray name() const). Qt 5.15.2
-          // error : must use 'class' tag to refer to type 'QByteArray' in this scope 
-          if (meth.name().contains("name") &&  meth.type()->toString().contains("QByteArray"))
-            out << "class QByteArray" << " xret = ";
-          else		  
-#endif
-          {
+	  // className|meth.toString()|typeName|BadCast
+	  bool found = false;
+	  if (!Options::tripleConditions.isEmpty()) {
+	    for (QString& str : Options::tripleConditions) {
+	      QStringList strlst = str.split('|');
+	      // Has field "BadCast"?
+	      if (strlst.size() > 3) 
+	      if (className.contains(strlst.at(0)) && meth.toString().contains(strlst.at(1)) && strlst.at(3).contains("BadCast")) {
+		out << strlst.at(2) << " xret = ";
+		found = true;
+		break;
+	      }
+	    }
+	  }
+	  if (!found) {
 	    QString typeName = meth.type()->toString();
 	    // Reference to pointer?
 	    if (typeName.contains("*&"))
 	      typeName.replace("&", "");
 	    out << typeName << " xret = ";
-         }   
-        }
+	  }
+	}
         if (!(meth.flags() & Method::Static)) {
             QString objName = privateDestructor ? "obj" : "this";
             if (meth.isConst()) {
@@ -182,49 +189,42 @@ QString SmokeClassFiles::generateMethodBody(const QString& indent, const QString
 
         QString field = Util::stackItemField(param.type());
         QString typeName = param.type()->toString();
-        if (param.type()->name().contains("QWebEngineCallback"))
-          {
-            typeName = "void (*)(const QVariant)";
-          }
-        else {
-          if (param.type()->isArray()) {
-            Type t = *param.type();
-            t.setPointerDepth(t.pointerDepth() + 1);
-            t.setIsRef(false);
-            typeName = t.toString();
-            out << '*';
-          }
-          else if (field == "s_class" && (param.type()->pointerDepth() == 0 || param.type()->isRef()) && !param.type()->isFunctionPointer()) {
-	    // pass an array by reference
-	    if (param.type()->toString().remove(QRegularExpression(" ")).contains("]&")) {
-	      QString str = param.type()->toString();
-	      // double const
-	      if (str.count("const") > 1)
-	        str.remove(0, 6);
-	      QStringList stl = str.split("[");
-	      typeName = stl.at(0) + "(&)[" + stl.at(1).split("]").at(0) + "]";
-	      // & bypass removal.
-	      paramArrRef = true;
-	    } else {
-	      // references and classes are passed in s_class
-	      typeName.append('*');
-	      out << '*';
-	    }
+	if (param.type()->isArray()) {
+	  Type t = *param.type();
+	  t.setPointerDepth(t.pointerDepth() + 1);
+	  t.setIsRef(false);
+	  typeName = t.toString();
+	  out << '*';
+	} else if (field == "s_class" && (param.type()->pointerDepth() == 0 || param.type()->isRef()) && !param.type()->isFunctionPointer()) {
+	  // pass an array by reference
+	  if (param.type()->toString().remove(QRegularExpression(" ")).contains("]&")) {
+	    QString str = param.type()->toString();
+	    // double const
+	    if (str.count("const") > 1)
+	      str.remove(0, 6);
+	    QStringList stl = str.split("[");
+	    typeName = stl.at(0) + "(&)[" + stl.at(1).split("]").at(0) + "]";
+	    // & bypass removal.
+	    paramArrRef = true;
+	  } else {
+	    // references and classes are passed in s_class
+	    typeName.append('*');
+	    out << '*';
 	  }
-          // Erroneous cast. Reference to pointer '&(*)' in function pointer.
-	  for (QString& str : Options::doubleConditions) {
-	    QStringList strlst = str.split('|');
-	    if (typeName.contains(strlst.at(1)) && meth.name().contains(strlst.at(0)))
-	      typeName.replace("&", "");
-	  }
-          // casting to a reference doesn't make sense in this case
-          if (param.type()->isRef() && !param.type()->isFunctionPointer() && !paramArrRef) {
-	    //Multiples '&' example "const std::function<void (const QWebEngineFindTextResult &)>&"
-	    int pos = typeName.lastIndexOf('&');
-	    typeName.replace(pos,1, ' ');
-	  }   
-        }
-        bool condition = false;
+	}
+	// Erroneous cast. Reference to pointer '&(*)' in function pointer.
+	for (QString& str : Options::doubleConditions) {
+	  QStringList strlst = str.split('|');
+	  if (typeName.contains(strlst.at(1)) && meth.name().contains(strlst.at(0)))
+	    typeName.replace("&", "");
+	}
+	// casting to a reference doesn't make sense in this case
+	if (param.type()->isRef() && !param.type()->isFunctionPointer() && !paramArrRef) {
+	  //Multiples '&' example "const std::function<void (const QWebEngineFindTextResult &)>&"
+	  int pos = typeName.lastIndexOf('&');
+	  typeName.replace(pos,1, ' ');
+	}
+	bool condition = false;
 	// Reference to ‘identifier’ is ambiguous?
 	for (QString& str : Options::tripleConditions) {
 	  QStringList strlst = str.split('|');
@@ -236,7 +236,7 @@ QString SmokeClassFiles::generateMethodBody(const QString& indent, const QString
 	}
 	if (!condition)
 	  out << "(" << typeName << ")" << "x[" << j + 1 << "]." << field;
-    } // for
+    }// for
 
     // if the method is constructor and check if the constructor needs remaining default values
     bool aceptRemainingDefaultValues = true;
@@ -269,19 +269,24 @@ QString SmokeClassFiles::generateMethodBody(const QString& indent, const QString
       auto field = Util::stackItemField(meth.type());
       if (field == "s_enum")
         out << indent << "x[0]." << field << " = " << Util::assignmentString(meth.type(), "xret") << ";\n";
-      else
-#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))                
-        // Dirty hack, stupidy compiler error (::QByteArray name() const). Qt 5.15.2
-        // error : must use 'class' tag to refer to type 'QByteArray' in this scope 
-        if (meth.name().contains("name") &&  meth.type()->toString().contains("QByteArray"))
-          out <<  indent << "x[0]." << field << " = " << "(void*)new class QByteArray(xret);\n";
-        else
-#endif            
-          out << indent << "x[0]." << field << " = " << Util::assignmentString(meth.type(), "xret") << ";\n";
+      else {
+	// className|meth.toString()|typeName|BadCast
+	if (!Options::tripleConditions.isEmpty()) {
+	  for (QString& str : Options::tripleConditions) {
+	    QStringList strlst = str.split('|');
+	    // Has field "BadCast"?
+	    if (strlst.size() > 3) 
+	    if (className.contains(strlst.at(0)) && meth.toString().contains(strlst.at(1)) && strlst.at(3).contains("BadCast")) {
+	      out <<  indent << "x[0]." << field << " = " << "(void*)new " << strlst.at(2) << "(xret);\n";
+	      return methodBody;
+	    }
+	  }
+	}
+	out << indent << "x[0]." << field << " = " << Util::assignmentString(meth.type(), "xret") << ";\n";
+      }
     } else {
-        out << indent << "(void)x; // noop (for compiler warning)\n";
+      out << indent << "(void)x; // noop (for compiler warning)\n";
     }
-
     return methodBody;
 }
 
