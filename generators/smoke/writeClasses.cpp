@@ -403,14 +403,18 @@ void SmokeClassFiles::generateSetAccessor(QTextStream& out, const QString& class
 	}
       }
     }
-
+ 
     // C++ haven't first class arrays.
     if (cast.contains("[") && (unionField == "s_class" && type->pointerDepth() == 0)) {
-      QStringList list1 = field.toString().split("[", Qt::SkipEmptyParts);
-      QStringList list2 = list1.at(1).split("]", Qt::SkipEmptyParts);
-      int siz = list2.at(0).toInt();
+      QStringList strlst = field.toString().split('[');
+      // Multi-dimensional Arrays
+      int siz = 1;
+      for (int i = 0; i < strlst.size()-1; i++) {
+	QStringList list = strlst.at(i+1).split("]");
+	siz = siz * list.at(0).toInt();
+      }
       out << "        " << "std::memcpy(" << fieldName << ", x[1].s_class, " << siz
-	  << "*sizeof(" <<  list1.at(0) << "));\n" << "    }\n";
+	  << "*sizeof(" <<  strlst.at(0) << "));\n" << "    }\n";
       return;
     }
 
