@@ -227,7 +227,16 @@ void SmokeDataFile::write()
             }
         }
         // Sometimes klass.toString() or className loses information for correct typecasting, use iter.key().
-	tmp_str = klass.toString().isEmpty() ? iter.key() : klass.toString();    
+	tmp_str = klass.toString().isEmpty() ? iter.key() : klass.toString();
+	// Error: template<class TheItemType> class Name’ used without template arguments,
+	// incomplete information for correct typecasting, use iter.key().
+	for (QString& str : Options::doubleConditions) {
+	  QStringList strlst = str.split('|');
+	  if (tmp_str.contains(strlst.at(0)) && (iter.key().contains(strlst.at(1)))) {
+	    tmp_str = iter.key();
+	    break;
+	  }
+	}
 	out << QString("        case %1: return (void*)(%2*)xptr;\n").arg(iter.value()).arg(tmp_str);
         foreach (const Class* desc, Util::descendantsList(&klass)) {
             QString className = desc->toString();
