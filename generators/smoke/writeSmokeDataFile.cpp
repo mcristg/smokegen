@@ -191,6 +191,7 @@ void SmokeDataFile::write()
     QFile argNames(Options::outputDir.filePath(QString("%1.argnames.txt").arg(Options::module)));
     argNames.open(QFile::ReadWrite | QFile::Truncate);
     QTextStream outArgNames(&argNames);
+    QString tmp_str;
     foreach (const QFileInfo& file, Options::headerList)
         out << "#include <" << file.fileName() << ">\n";
     out << "\n#include <smoke.h>\n";
@@ -220,14 +221,14 @@ void SmokeDataFile::write()
                 if (indices.contains(index))
                     continue;
                 indices << index;
-                
+                tmp_str = className.isEmpty() ? iter.key() : className;
                 out << QString("        case %1: return (void*)(%2*)(%3*)xptr;\n")
-                    .arg(index).arg(className).arg(klass.toString());
+                    .arg(index).arg(tmp_str).arg(klass.toString());   
             }
         }
-        // Sometimes klass.toString() loses information for correct typecasting, use iter.key().
-	out << QString("        case %1: return (void*)(%2*)xptr;\n").arg(iter.value()).arg(iter.key());
-	// out << QString("        case %1: return (void*)(%2*)xptr;\n").arg(iter.value()).arg(klass.toString());
+        // Sometimes klass.toString() or className loses information for correct typecasting, use iter.key().
+	tmp_str = klass.toString().isEmpty() ? iter.key() : klass.toString();    
+	out << QString("        case %1: return (void*)(%2*)xptr;\n").arg(iter.value()).arg(tmp_str);
         foreach (const Class* desc, Util::descendantsList(&klass)) {
             QString className = desc->toString();
             
@@ -241,9 +242,10 @@ void SmokeDataFile::write()
                     out << QString("        case %1: return (void*)dynamic_cast<%2*>((%3*)xptr);\n")
                         .arg(index).arg(className).arg(klass.toString());
                 } else {
-                    out << QString("        case %1: return (void*)(%2*)(%3*)xptr;\n")
-                        .arg(index).arg(className).arg(klass.toString());
-                }
+		  tmp_str = klass.toString().isEmpty() ? iter.key() : klass.toString();
+		  out << QString("        case %1: return (void*)(%2*)(%3*)xptr;\n")
+		    .arg(index).arg(className).arg(tmp_str);
+		}
             }
         }
         out << "        default: return xptr;\n";
