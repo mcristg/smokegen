@@ -411,7 +411,7 @@ void SmokeClassFiles::generateSetAccessor(QTextStream& out, const QString& class
       int siz = 1;
       for (int i = 0; i < strlst.size()-1; i++) {
 	QStringList list = strlst.at(i+1).split("]");
-	siz = siz * list.at(0).toInt(); 
+	siz = siz * list.at(0).toInt();
       }
       out << "        " << "std::memcpy(" << fieldName << ", x[1].s_class, " << siz
 	  << "*sizeof(" <<  strlst.at(0) << "));\n" << "    }\n";
