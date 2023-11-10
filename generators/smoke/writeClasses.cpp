@@ -411,7 +411,7 @@ void SmokeClassFiles::generateSetAccessor(QTextStream& out, const QString& class
       int siz = 1;
       for (int i = 0; i < strlst.size()-1; i++) {
 	QStringList list = strlst.at(i+1).split("]");
-	siz = siz * list.at(0).toInt();
+	siz = siz * list.at(0).toInt(); 
       }
       out << "        " << "std::memcpy(" << fieldName << ", x[1].s_class, " << siz
 	  << "*sizeof(" <<  strlst.at(0) << "));\n" << "    }\n";
@@ -428,6 +428,14 @@ void SmokeClassFiles::generateSetAccessor(QTextStream& out, const QString& class
 	  return;
 	}
       }
+    }
+
+    // an array of pointers
+    if (cast.contains("(*)[")) {
+      QStringList strlst = cast.split('[');
+      out << "        " << "std::memcpy(" << fieldName << ", x[1].s_class, " << "sizeof("
+	  << strlst.at(0) << ")*" << strlst.at(1).split(']').at(0) << ");\n" << "    }\n";
+      return;
     }
 
     out << "        " << fieldName << " = ";
