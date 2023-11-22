@@ -228,11 +228,20 @@ QString SmokeClassFiles::generateMethodBody(const QString& indent, const QString
 	// Reference to ‘identifier’ is ambiguous?
 	for (QString& str : Options::tripleConditions) {
 	  QStringList strlst = str.split('|');
-	  if (smokeClassName.contains(strlst.at(0)) && (meth.name().contains(strlst.at(1)) || meth.name().contains(strlst.at(2)))) {
-	    out << "(" << strlst.at(0) << "::" << typeName << ")" << "x[" << j + 1 << "]." << field;
-	    condition = true;
-	    break;
-	  }
+	  // Bad cast in various parameters, find in smokeconfig.xml the 'cast' (OCCT).
+	  // className|meth.toString()|typeName|idx_param
+	  if (strlst.size() > 3) {
+	    int idx_param = strlst.at(3).toInt();
+	    if ((idx_param > 0) && (idx_param == (j+1)) && smokeClassName.contains(strlst.at(0)) && meth.name().contains(strlst.at(1))) {
+	      out << "("  << strlst.at(2) << ")" << "x[" << j + 1 << "]." << field;
+	      condition = true;
+	    }
+	  } else
+	    if (smokeClassName.contains(strlst.at(0)) && (meth.name().contains(strlst.at(1)) || meth.name().contains(strlst.at(2)))) {
+	      out << "(" << strlst.at(0) << "::" << typeName << ")" << "x[" << j + 1 << "]." << field;
+	      condition = true;
+	      break;
+	    }
 	}
 	if (!condition)
 	  out << "(" << typeName << ")" << "x[" << j + 1 << "]." << field;
