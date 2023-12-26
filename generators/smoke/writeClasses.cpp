@@ -713,6 +713,18 @@ void SmokeClassFiles::writeClass(QTextStream& out, const Class* klass, const QSt
         out << "    " << smokeClassName << " *xself = (" << smokeClassName << "*)obj;\n";
     out << "    switch(xi) {\n";
     out << switchCode;
+    // In SmokegenASTVisitor::registerClass does not recognize when the class destructor is private. (OCCT).
+    // Pending solution in astvisitor.cpp. Let's use smokeconfig.xml while we fix the problem.
+    if (!Options::doubleConditions.isEmpty()) {
+      for (QString& str : Options::doubleConditions) {
+	QStringList strlst = str.split('|');
+	if ((strlst.at(0) == className) && (strlst.at(1) == "private")) {
+	  out << "    }\n";
+	  out << "}\n";
+	  return;
+	}
+      }
+    }
     if (Util::hasClassPublicDestructor(klass))
         out << "        case " << xcall_index << ": delete (" << className << "*)xself;\tbreak;\n";
     out << "    }\n";
