@@ -222,6 +222,18 @@ void SmokeDataFile::write()
                     continue;
                 indices << index;
                 tmp_str = className.isEmpty() ? iter.key() : className;
+                // className|klass.toString()|cast|"BadCast"
+		if (!Options::tripleConditions.isEmpty()) {
+		  for (QString& str : Options::tripleConditions) {
+		    QStringList strlst = str.split('|');
+		    // Has field "BadCast"?
+		    if (strlst.size() > 3)
+		      if (tmp_str.contains(strlst.at(0)) && (iter.key().contains(strlst.at(1))) && strlst.at(3).contains("BadCast")) {
+			tmp_str = strlst.at(2);
+			break;
+		      }
+		  }
+		} 
                 out << QString("        case %1: return (void*)(%2*)(%3*)xptr;\n")
                     .arg(index).arg(tmp_str).arg(klass.toString());   
             }
@@ -252,6 +264,13 @@ void SmokeDataFile::write()
                         .arg(index).arg(className).arg(klass.toString());
                 } else {
 		  tmp_str = klass.toString().isEmpty() ? iter.key() : klass.toString();
+		  for (QString& str : Options::doubleConditions) {
+		    QStringList strlst = str.split('|');
+		    if (tmp_str.contains(strlst.at(0)) && (iter.key().contains(strlst.at(1)))) {
+		      tmp_str = iter.key();
+		      break;
+		    }
+		  }
 		  out << QString("        case %1: return (void*)(%2*)(%3*)xptr;\n")
 		    .arg(index).arg(className).arg(tmp_str);
 		}
