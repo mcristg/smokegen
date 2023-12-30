@@ -339,20 +339,37 @@ void SmokeClassFiles::generateMethod(QTextStream& out, const QString& className,
         for (int i = 0; i < meth.parameters().count(); i++) {
             if (i > 0) out << ", ";
             QString param = meth.parameters()[i].type()->toString();
-	    // Correctly make the function pointer in the parameter.
-	    if (meth.parameters()[i].type()->isFunctionPointer())
-	      out << param.replace("(*)","(*x" + QString::number(i + 1) + ")");
-	    else {
-	      // pass an array by reference
-	      QString str = param;
-	      if (str.remove(QRegularExpression(" ")).contains("]&")) {
-		// double const
-		if (param.count("const") > 1)
-		  param.remove(0, 6);
-		QStringList stl = param.split("[");
-		out << stl.at(0) << "(&x" + QString::number(i + 1) << ")[" << stl.at(1).split("]").at(0) << "]";
-	      } else
-		out << param << " x" << QString::number(i + 1);
+            bool found = false;
+	    if (!Options::tripleConditions.isEmpty()) {
+	      for (QString& str : Options::tripleConditions) {
+		QStringList strlst = str.split('|');
+		// Bad cast in various parameters, find in smokeconfig.xml the 'cast' (OCCT).
+		// className|meth.toString()|typeName|idx_param
+		if (strlst.size() > 3) {
+		  int idx_param = strlst.at(3).toInt();
+		  if ((idx_param > 0) && (idx_param == (i+1)) && smokeClassName.contains(strlst.at(0)) && meth.name().contains(strlst.at(1))) {
+		    out << strlst.at(2) << " x" << QString::number(i + 1);
+		    found = true;
+		  }
+		}
+	      }
+	    }
+	    if (!found) {
+	      // Correctly make the function pointer in the parameter.
+	      if (meth.parameters()[i].type()->isFunctionPointer())
+		out << param.replace("(*)","(*x" + QString::number(i + 1) + ")");
+	      else {
+		// pass an array by reference
+		QString str = param;
+		if (str.remove(QRegularExpression(" ")).contains("]&")) {
+		  // double const
+		  if (param.count("const") > 1)
+		    param.remove(0, 6);
+		  QStringList stl = param.split("[");
+		  out << stl.at(0) << "(&x" + QString::number(i + 1) << ")[" << stl.at(1).split("]").at(0) << "]";
+		} else
+		  out << param << " x" << QString::number(i + 1);
+	      }
 	    }
 	    x_list << "x" + QString::number(i + 1);
 	}
