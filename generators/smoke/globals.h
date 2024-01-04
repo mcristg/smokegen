@@ -107,6 +107,8 @@ private:
     void writeClass(QTextStream& out, const Class* klass, const QString& className, QSet<QString>& includes);
     void addIncludesForType(QSet< QString >& includes, const Type* type);
     
+    bool BadCastMethType(const QString& className, const Method& meth, QTextStream &out);
+    
     SmokeDataFile *m_smokeData;
 };
     

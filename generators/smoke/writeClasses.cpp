@@ -127,38 +127,10 @@ QString SmokeClassFiles::generateMethodBody(const QString& indent, const QString
         addIncludesForType(includes, meth.type());        
 	  
         if (meth.type()->isFunctionPointer() || meth.type()->isArray()) {
-	  // className|meth.toString()|typeName|BadCast
-	  bool found = false;
-	  if (!Options::tripleConditions.isEmpty()) {
-	    for (QString& str : Options::tripleConditions) {
-	      QStringList strlst = str.split('|');
-	      // Has field "BadCast"?
-	      if (strlst.size() > 3)
-		if (className.contains(strlst.at(0)) && meth.toString().contains(strlst.at(1)) && strlst.at(3).contains("BadCast")) {
-		  out << strlst.at(2) << " xret = ";
-		  found = true;
-		  break;
-		}
-	    }
-	  }
-	  if (!found)
+	  if (!BadCastMethType(className, meth, out))
 	    out << meth.type()->toString("xret") << " = ";
-       } else if (meth.type() != Type::Void) {
-	  // className|meth.toString()|typeName|BadCast
-	  bool found = false;
-	  if (!Options::tripleConditions.isEmpty()) {
-	    for (QString& str : Options::tripleConditions) {
-	      QStringList strlst = str.split('|');
-	      // Has field "BadCast"?
-	      if (strlst.size() > 3) 
-	      if (className.contains(strlst.at(0)) && meth.toString().contains(strlst.at(1)) && strlst.at(3).contains("BadCast")) {
-		out << strlst.at(2) << " xret = ";
-		found = true;
-		break;
-	      }
-	    }
-	  }
-	  if (!found) {
+	} else if (meth.type() != Type::Void) {
+	  if (!BadCastMethType(className, meth, out)) {
 	    QString typeName = meth.type()->toString();
 	    // Reference to pointer?
 	    if (typeName.contains("*&"))
@@ -772,3 +744,20 @@ void SmokeClassFiles::addIncludesForType(QSet< QString >& includes, const Type* 
         addIncludesForType(includes, &type->templateArguments()[i]);
     }
 }
+
+bool SmokeClassFiles::BadCastMethType(const QString& className, const Method& meth, QTextStream &out)
+{
+  // className|meth.toString()|typeName|BadCast
+  if (!Options::tripleConditions.isEmpty()) {
+    for (QString& str : Options::tripleConditions) {
+      QStringList strlst = str.split('|');
+      // Has field "BadCast"?
+      if (strlst.size() > 3)
+	if (className.contains(strlst.at(0)) && meth.toString().contains(strlst.at(1)) && strlst.at(3).contains("BadCast")) {
+	  out << strlst.at(2) << " xret = ";
+	  return true;
+	}
+    }
+  }
+  return false;
+}	  
