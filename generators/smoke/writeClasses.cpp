@@ -124,11 +124,26 @@ QString SmokeClassFiles::generateMethodBody(const QString& indent, const QString
         if (func)
             includes.insert(func->fileName());
 
-        addIncludesForType(includes, meth.type());
-
-        if (meth.type()->isFunctionPointer() || meth.type()->isArray())
-            out << meth.type()->toString("xret") << " = ";
-        else if (meth.type() != Type::Void) {
+        addIncludesForType(includes, meth.type());        
+	  
+        if (meth.type()->isFunctionPointer() || meth.type()->isArray()) {
+	  // className|meth.toString()|typeName|BadCast
+	  bool found = false;
+	  if (!Options::tripleConditions.isEmpty()) {
+	    for (QString& str : Options::tripleConditions) {
+	      QStringList strlst = str.split('|');
+	      // Has field "BadCast"?
+	      if (strlst.size() > 3)
+		if (className.contains(strlst.at(0)) && meth.toString().contains(strlst.at(1)) && strlst.at(3).contains("BadCast")) {
+		  out << strlst.at(2) << " xret = ";
+		  found = true;
+		  break;
+		}
+	    }
+	  }
+	  if (!found)
+	    out << meth.type()->toString("xret") << " = ";
+       } else if (meth.type() != Type::Void) {
 	  // className|meth.toString()|typeName|BadCast
 	  bool found = false;
 	  if (!Options::tripleConditions.isEmpty()) {
