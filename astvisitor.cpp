@@ -567,7 +567,11 @@ void SmokegenASTVisitor::addQPropertyAnnotations(const clang::CXXRecordDecl* D) 
         if (clang::StaticAssertDecl *S = llvm::dyn_cast<clang::StaticAssertDecl>(d) ) {
             if (auto *E = llvm::dyn_cast<clang::UnaryExprOrTypeTraitExpr>(S->getAssertExpr())) {
                 if (clang::ParenExpr *PE = llvm::dyn_cast<clang::ParenExpr>(E->getArgumentExpr())) {
+#if LLVM_VERSION <= 16
                     llvm::StringRef key = S->getMessage()->getString();
+#else
+                    llvm::StringRef key = llvm::dyn_cast<clang::StringLiteral>(S->getMessage())->getString();
+#endif
                     if (key == "qt_property") {
                         clang::StringLiteral *Val = llvm::dyn_cast<clang::StringLiteral>(PE->getSubExpr());
 

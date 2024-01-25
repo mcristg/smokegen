@@ -35,6 +35,8 @@ if (NOT LIB_INSTALL_DIR)
     set (LIB_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/lib${LIB_SUFFIX})
 endif (NOT LIB_INSTALL_DIR)
 
+add_compile_definitions(LLVM_VERSION=${LLVM_VERSION_MAJOR})
+
 include_directories(${CMAKE_BINARY_DIR})
 
 set(generator_SRC
