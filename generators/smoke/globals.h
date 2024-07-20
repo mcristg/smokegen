@@ -108,6 +108,8 @@ private:
     void addIncludesForType(QSet< QString >& includes, const Type* type);
     
     bool BadCastMethType(const QString& className, const Method& meth, QTextStream &out);
+    bool HaveBadCastParameterType(const QString& className, const Method& meth, int j);
+    bool HaveBadCastParameterType(const QString& smokeClassName, const Method& meth, QString& typeName, QString& field, int j, QTextStream& out);
     
     SmokeDataFile *m_smokeData;
 };
