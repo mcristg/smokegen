@@ -686,13 +686,13 @@ void SmokeClassFiles::writeClass(QTextStream& out, const Class* klass, const QSt
     out << "};\n";
     
     if (enumFound) {
-        out << "void xenum_" << underscoreName << "(Smoke::EnumOperation xop, Smoke::Index xtype, void *&xdata, long &xvalue) {\n";
+        out << "SMOKE_LOCAL void xenum_" << underscoreName << "(Smoke::EnumOperation xop, Smoke::Index xtype, void *&xdata, long &xvalue) {\n";
         out << "    " << smokeClassName << "::xenum_operation(xop, xtype, xdata, xvalue);\n";
         out << "}\n";
     }
     
     // xcall_class function
-    out << "void xcall_" << underscoreName << "(Smoke::Index xi, void *obj, Smoke::Stack args) {\n";
+    out << "SMOKE_LOCAL void xcall_" << underscoreName << "(Smoke::Index xi, void *obj, Smoke::Stack args) {\n";
     if (privateDestructor)
         out << "    " << className << " *xself = (" << className << "*)obj;\n";
     else

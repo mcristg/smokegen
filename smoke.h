@@ -48,20 +48,24 @@
   // Define this when building a smoke lib.
   #ifdef SMOKE_BUILDING
     #define SMOKE_EXPORT __declspec(dllexport)
+    #define SMOKE_LOCAL
   #else
     #define SMOKE_EXPORT __declspec(dllimport)
+    #define SMOKE_LOCAL
   #endif
   #define SMOKE_IMPORT __declspec(dllimport)
 #else
   #ifdef GCC_VISIBILITY
     #define SMOKE_EXPORT __attribute__ ((visibility("default")))
     #define BASE_SMOKE_EXPORT __attribute__ ((visibility("default")))
+    #define SMOKE_LOCAL __attribute__ ((visibility ("hidden")))
   #else
     #define SMOKE_EXPORT
     #define BASE_SMOKE_EXPORT
+    #define SMOKE_LOCAL  __attribute__ ((visibility ("hidden")))
   #endif
   #define SMOKE_IMPORT
-#endif
+#endif 
 
 class SmokeBinding;
 
