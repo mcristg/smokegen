@@ -145,6 +145,7 @@ Class* SmokegenASTVisitor::registerClass(const clang::CXXRecordDecl* clangClass)
     }
     Class::Kind kind;
     switch (clangClass->getTagKind()) {
+#if LLVM_VERSION <= 17
         case clang::TTK_Class:
             kind = Class::Kind_Class;
             break;
@@ -154,6 +155,17 @@ Class* SmokegenASTVisitor::registerClass(const clang::CXXRecordDecl* clangClass)
         case clang::TTK_Union:
             kind = Class::Kind_Union;
             break;
+#else
+        case clang::TagTypeKind::Class:
+            kind = Class::Kind_Class;
+            break;
+        case clang::TagTypeKind::Struct:
+            kind = Class::Kind_Struct;
+            break;
+        case clang::TagTypeKind::Union:
+            kind = Class::Kind_Union;
+            break;
+#endif
         default:
             break;
     }
@@ -236,9 +248,15 @@ Class* SmokegenASTVisitor::registerClass(const clang::CXXRecordDecl* clangClass)
             newMethod.setIsConst(method->isConst());
             if (method->isVirtual()) {
                 newMethod.setFlag(Member::Virtual);
+#if LLVM_VERSION <= 17    
                 if (method->isPure()) {
                     newMethod.setFlag(Member::PureVirtual);
                 }
+#else
+                if (method->isPureVirtual()) {
+                    newMethod.setFlag(Member::PureVirtual);
+                }
+#endif       
             }
             if (method->isStatic()) {
                 newMethod.setFlag(Member::Static);
