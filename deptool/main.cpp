@@ -95,7 +95,7 @@ int main(int argc, char** argv)
 
     for (QHash<Smoke*, QSet<Smoke*> >::iterator iter = parents.begin(); iter != parents.end(); iter++) {
         // remove dependencies that are already covered by other parent modules
-        foreach (Smoke* smoke, iter.value()) {
+        for (Smoke* smoke : iter.value()) {
             iter.value() -= parents[smoke];
         }
     }
@@ -103,7 +103,7 @@ int main(int argc, char** argv)
     QTextStream qOut(stdout);
     QList<Smoke*> smokeModules = parents.keys();
     std::sort(smokeModules.begin(), smokeModules.end(), smokeModuleLessThan);
-    foreach(Smoke* smoke, smokeModules) {
+    for (Smoke* smoke : smokeModules) {
         qDebug() << "parent modules for" << smoke->moduleName();
 
         QList<Smoke*> sortedList = parents[smoke].values();
@@ -111,18 +111,18 @@ int main(int argc, char** argv)
 
         if (generateXml) {
             qOut << "    <parentModules>" << Qt::endl;
-            foreach (Smoke* parent, sortedList) {
+            for (Smoke* parent : sortedList) {
                 qOut << "        <module>" << parent->moduleName() << "</module>" << Qt::endl;
             }
             qOut << "    </parentModules>" << Qt::endl;
         } else {
-            foreach (Smoke* parent, sortedList) {
+            for (Smoke* parent : sortedList) {
                 qOut << "  * " << parent->moduleName() << Qt::endl;
             }
         }
     }
 
-    foreach (Smoke* smoke, parents.keys())
+    for (Smoke* smoke : parents.keys())
         delete smoke;
 
     return 0;

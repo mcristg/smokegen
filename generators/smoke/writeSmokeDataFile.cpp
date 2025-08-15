@@ -52,12 +52,12 @@ SmokeDataFile::SmokeDataFile()
     
     // Collect the classes that are inherited by classes in this smoke module and provide virtual methods.
     // These classes need to be indexed as well.
-    foreach (const QString& className, includedClasses) {
+    for (const QString& className : includedClasses) {
         const Class* klass = &classes[className];
         QList<const Method*> list = Util::virtualMethodsForClass(klass);
-        foreach (const Method* meth, list) {
+        for (const Method* meth : list) {
             usedTypes << meth->type();
-            foreach (const Parameter& param, meth->parameters()) {
+            for (const Parameter& param : meth->parameters()) {
                 usedTypes << param.type();
                 if (meth->isSlot() || meth->isSignal() || meth->isQPropertyAccessor()) {
                     usedTypes << Util::normalizeType(param.type());
@@ -67,7 +67,7 @@ SmokeDataFile::SmokeDataFile()
         }
     }
 
-    foreach (Type* type, usedTypes) {
+    for (Type* type : usedTypes) {
         insertTemplateParameters(*type);
     }
 
@@ -102,7 +102,7 @@ SmokeDataFile::SmokeDataFile()
 
 void SmokeDataFile::insertTemplateParameters(const Type& type)
 {
-    foreach(const Type& t, type.templateArguments()) {
+    for (const Type& t : type.templateArguments()) {
         usedTypes << Type::registerType(t);
         insertTemplateParameters(t);
     }
@@ -192,7 +192,7 @@ void SmokeDataFile::write()
     argNames.open(QFile::ReadWrite | QFile::Truncate);
     QTextStream outArgNames(&argNames);
     QString tmp_str;
-    foreach (const QFileInfo& file, Options::headerList)
+    for (const QFileInfo& file : Options::headerList)
         out << "#include <" << file.fileName() << ">\n";
     out << "\n#include <smoke.h>\n";
     out << "#include <" << Options::module << "_smoke.h>\n\n";
@@ -213,7 +213,7 @@ void SmokeDataFile::write()
         
         out << "    case " << iter.value() << ":   //" << iter.key() << "\n";
         out << "      switch(to) {\n";
-        foreach (const Class* base, Util::superClassList(&klass)) {
+        for (const Class* base : Util::superClassList(&klass)) {
             QString className = base->toString();
             
             if (includedClasses.contains(className) || externalClasses.contains((Class *) base)) {
@@ -250,7 +250,7 @@ void SmokeDataFile::write()
 	  }
 	}
 	out << QString("        case %1: return (void*)(%2*)xptr;\n").arg(iter.value()).arg(tmp_str);
-        foreach (const Class* desc, Util::descendantsList(&klass)) {
+        for (const Class* desc : Util::descendantsList(&klass)) {
             QString className = desc->toString();
             
             if (includedClasses.contains(className)) {
@@ -298,7 +298,7 @@ void SmokeDataFile::write()
             continue;
         QVector<int> indices;
         QStringList comment;
-        foreach (const Class::BaseClassSpecifier& base, klass.baseClasses()) {
+        for (const Class::BaseClassSpecifier& base : klass.baseClasses()) {
             if (base.access == Access_private)
                 continue;
             QString className = base.baseClass->toString();
@@ -442,7 +442,7 @@ void SmokeDataFile::write()
     typeDefsFile.open(QFile::ReadWrite | QFile::Truncate);
     QTextStream outTypeDefs(&typeDefsFile);
 
-    foreach (Typedef typeDef, typedefs.values()) {
+    for (Typedef typeDef : typedefs.values()) {
         outTypeDefs << typeDef.toString() << ";" << typeDef.resolve().toString() << "\n";
     }
     outTypeDefs.flush();
@@ -467,7 +467,7 @@ void SmokeDataFile::write()
         if (isExternal && !isDeclaredVirtual)
             continue;
         QMap<QString, QList<const Member*> >& map = classMungedNames[klass];
-        foreach (const Method& meth, klass->methods()) {
+        for (const Method& meth : klass->methods()) {
             if (meth.access() == Access_private)
                 continue;
             if (isExternal && !declaredVirtualMethods[klass].contains(&meth))
@@ -530,12 +530,12 @@ void SmokeDataFile::write()
             }
             parameterIndices[&meth] = idx;
         }
-        foreach (BasicTypeDeclaration* decl, klass->children()) {
+        for (BasicTypeDeclaration* decl : klass->children()) {
             const Enum* e = 0;
             if ((e = dynamic_cast<Enum*>(decl))) {
                 if (e->access() == Access_private)
                     continue;
-                foreach (const EnumMember& member, e->members()) {
+                for (const EnumMember& member : e->members()) {
                     methodNames[member.name()] = 1;
                     map[member.name()].append(&member);
                 }
@@ -574,7 +574,7 @@ void SmokeDataFile::write()
         QList<const Method*> virtualMethods = Util::virtualMethodsForClass(klass);
         
         int xcall_index = 1;
-        foreach (const Method& meth, klass->methods()) {
+        for (const Method& meth : klass->methods()) {
             if (isExternal && !declaredVirtualMethods[klass].contains(&meth))
                 continue;
             if (meth.access() == Access_private)
@@ -652,7 +652,7 @@ void SmokeDataFile::write()
             methodCount++;
         }
         // enums
-        foreach (BasicTypeDeclaration* decl, klass->children()) {
+        for (BasicTypeDeclaration* decl : klass->children()) {
             const Enum* e = 0;
             if ((e = dynamic_cast<Enum*>(decl))) {
                 if (e->access() == Access_private)
@@ -675,7 +675,7 @@ void SmokeDataFile::write()
                     index = *typeIt;
                 }
 
-                foreach (const EnumMember& member, e->members()) {
+                for (const EnumMember& member : e->members()) {
                     out << "    {" << iter.value() << ", " << methodNames[member.name()]
                         << ", 0, 0, Smoke::mf_static|Smoke::mf_enum, " << index
                         << ", " << xcall_index << "},";
@@ -722,7 +722,7 @@ void SmokeDataFile::write()
         {
             if (munged_it.value().size() < 2)
                 continue;
-            foreach (const Member* member, munged_it.value()) {
+            for (const Member* member : munged_it.value()) {
                 out << "    " << methodIdx[member] << ',';
                 
                 // comment
@@ -794,7 +794,7 @@ void SmokeDataFile::write()
     out << "Smoke *" << Options::module << "_Smoke = 0;\n\n";
     out << "// Create the Smoke instance encapsulating all the above.\n";
     out << "void init_" << Options::module << "_Smoke() {\n";
-    foreach (const QString& str, Options::parentModules) {
+    for (const QString& str : Options::parentModules) {
         out << "    init_" << str << "_Smoke();\n";
     }
     out << "    if (initialized) return;\n";
