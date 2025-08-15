@@ -54,7 +54,7 @@ void SmokeClassFiles::write(const QList<QString>& keys)
         
         // write the class code to a QString so we can later prepend the #includes
         if (i == Options::parts - 1) count2 = -1;
-        foreach (const QString& str, keys.mid(count * i, count2)) {
+        for (const QString& str : keys.mid(count * i, count2)) {
             const Class* klass = &classes[str];
             includes.insert(klass->fileName());
             writeClass(classOut, klass, str, includes);
@@ -581,7 +581,7 @@ void SmokeClassFiles::writeClass(QTextStream& out, const Class* klass, const QSt
     
     int xcall_index = 1;
 
-    foreach (const Method& meth, klass->methods()) {
+    for (const Method& meth : klass->methods()) {
         if (&meth == destructor)
             continue;
 
@@ -616,13 +616,13 @@ void SmokeClassFiles::writeClass(QTextStream& out, const Class* klass, const QSt
     QTextStream enumOut(&enumCode);
     const Enum* e = 0;
     bool enumFound = false;
-    foreach (const BasicTypeDeclaration* decl, klass->children()) {
+    for (const BasicTypeDeclaration* decl : klass->children()) {
         if (!(e = dynamic_cast<const Enum*>(decl)))
             continue;
         if (e->access() == Access_private)
             continue;
         
-        foreach (const EnumMember& member, e->members()) {
+        for (const EnumMember& member : e->members()) {
             switchOut << "        case " << xcall_index << ": " << smokeClassName <<  "::x_" << xcall_index << "(args);\tbreak;\n";
             if (e->parent())
                 generateEnumMemberCall(out, className, e->name(), e->isScoped(), member.name(), xcall_index++);
@@ -656,7 +656,7 @@ void SmokeClassFiles::writeClass(QTextStream& out, const Class* klass, const QSt
         enumOut << "            break;\n";
     }
     
-    foreach (const Method* meth, Util::virtualMethodsForClass(klass)) {
+    for (const Method* meth : Util::virtualMethodsForClass(klass)) {
         generateVirtualMethod(out, *meth, includes);
     }
     
