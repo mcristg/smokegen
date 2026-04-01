@@ -219,10 +219,12 @@ public:
 	unsigned int s_uint;
 	long s_long;
 	unsigned long s_ulong;
+	long long s_llong;
+	unsigned long long s_ullong;
 	float s_float;
 	double s_double;
-        long s_enum;
-        void* s_class;
+	long s_enum;
+	void* s_class;
     };
     enum TypeId {
 	t_voidp,
@@ -237,8 +239,10 @@ public:
 	t_ulong,
 	t_float,
 	t_double,
-        t_enum,
-        t_class,
+	t_enum,
+	t_class,
+	t_llong,
+	t_ullong,
 	t_last		// number of pre-defined types
     };
 

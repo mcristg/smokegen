@@ -239,13 +239,15 @@ int generate()
     
     Options::qtMode = ParserOptions::qtMode;
 
-    Options::voidpTypes << "long long" << "long long int" << "unsigned long long" << "unsigned long long int" <<
-        "nullptr_t" << "std::nullptr_t" << "char16_t" << "char32_t";
-    Options::scalarTypes << "long long" << "long long int" << "unsigned long long" << "unsigned long long int" <<
-        "nullptr_t" << "std::nullptr_t" << "char16_t" << "char32_t";
+    Options::voidpTypes << "nullptr_t" << "std::nullptr_t" << "char16_t" << "char32_t";
+    Options::scalarTypes << "nullptr_t" << "std::nullptr_t" << "char16_t" << "char32_t";
     
     // Fill the type map. It maps some long integral types to shorter forms as used in SMOKE.
     Util::typeMap["long int"] = "long";
+    Util::typeMap["long long"] = "llong";
+    Util::typeMap["long long int"] = "llong";
+    Util::typeMap["unsigned long long"] = "ullong";
+    Util::typeMap["unsigned long long int"] = "ullong";
     Util::typeMap["short int"] = "short";
     Util::typeMap["long double"] = "double";
     Util::typeMap["wchar_t"] = "int";   // correct?
