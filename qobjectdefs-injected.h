@@ -1,6 +1,7 @@
 static const char Injected[] = R"-(
 #ifndef Q_MOC_OUTPUT_REVISION
-#define Q_MOC_OUTPUT_REVISION 68
+// This number should be in sync with moc's outputrevision.h
+#define Q_MOC_OUTPUT_REVISION 69
 #endif
 
 // The following macros can be defined by tools that understand Qt
@@ -52,13 +53,11 @@ static const char Injected[] = R"-(
 #define QDOC_PROPERTY(text) QT_ANNOTATE_CLASS(qt_qdoc_property, text)
 #define Q_ENUMS(x) QT_ANNOTATE_CLASS(qt_enums, x)
 #define Q_FLAGS(x) QT_ANNOTATE_CLASS(qt_enums, x)
-#undef Q_ENUM_IMPL
 #define Q_ENUM_IMPL(ENUM) \
     friend constexpr const QMetaObject *qt_getEnumMetaObject(ENUM) noexcept { return &staticMetaObject; } \
     friend constexpr const char *qt_getEnumName(ENUM) noexcept { return #ENUM; }
 #define Q_ENUM(x) Q_ENUMS(x) Q_ENUM_IMPL(x)
 #define Q_FLAG(x) Q_FLAGS(x) Q_ENUM_IMPL(x)
-#undef Q_ENUM_NS_IMPL
 #define Q_ENUM_NS_IMPL(ENUM) \
     inline constexpr const QMetaObject *qt_getEnumMetaObject(ENUM) noexcept { return &staticMetaObject; } \
     inline constexpr const char *qt_getEnumName(ENUM) noexcept { return #ENUM; }
@@ -71,6 +70,53 @@ static const char Injected[] = R"-(
 #define Q_MOC_INCLUDE(...) QT_ANNOTATE_CLASS(qt_moc_include, __VA_ARGS__)
 #endif // QT_NO_META_MACROS
 
+#ifndef QT_NO_TRANSLATION
+// full set of tr functions
+#  define QT_TR_FUNCTIONS \
+    static inline QString tr(const char *s, const char *c = nullptr, int n = -1) \
+        { return staticMetaObject.tr(s, c, n); }
+#else
+// inherit the ones from QObject
+# define QT_TR_FUNCTIONS
+#endif
+
+#ifdef Q_QDOC
+#define QT_TR_FUNCTIONS
+#endif
+
+#if defined(Q_CC_CLANG)
+#  if Q_CC_CLANG >= 1100
+#    define Q_OBJECT_NO_OVERRIDE_WARNING    QT_WARNING_DISABLE_CLANG("-Winconsistent-missing-override") QT_WARNING_DISABLE_CLANG("-Wsuggest-override")
+#  elif Q_CC_CLANG >= 306
+#    define Q_OBJECT_NO_OVERRIDE_WARNING    QT_WARNING_DISABLE_CLANG("-Winconsistent-missing-override")
+#  endif
+#elif defined(Q_CC_GNU) && Q_CC_GNU >= 501
+#  define Q_OBJECT_NO_OVERRIDE_WARNING      QT_WARNING_DISABLE_GCC("-Wsuggest-override")
+#elif defined(Q_CC_MSVC)
+#  define Q_OBJECT_NO_OVERRIDE_WARNING      QT_WARNING_DISABLE_MSVC(26433)
+#else
+#  define Q_OBJECT_NO_OVERRIDE_WARNING
+#endif
+
+#if defined(Q_CC_GNU) && Q_CC_GNU >= 600
+#  define Q_OBJECT_NO_ATTRIBUTES_WARNING    QT_WARNING_DISABLE_GCC("-Wattributes")
+#else
+#  define Q_OBJECT_NO_ATTRIBUTES_WARNING
+#endif
+
+#define QT_META_OBJECT_VARS \
+    template <typename> static constexpr auto qt_create_metaobjectdata();       \
+    template <typename MetaObjectTagType> static constexpr inline auto          \
+    qt_staticMetaObjectContent = qt_create_metaobjectdata<MetaObjectTagType>(); \
+    template <typename MetaObjectTagType> static constexpr inline auto          \
+    qt_staticMetaObjectStaticContent = qt_staticMetaObjectContent<MetaObjectTagType>.staticData;\
+    template <typename MetaObjectTagType> static constexpr inline auto          \
+    qt_staticMetaObjectRelocatingContent = qt_staticMetaObjectContent<MetaObjectTagType>.relocatingData;
+
+#define QT_OBJECT_GADGET_COMMON  \
+    QT_META_OBJECT_VARS \
+    Q_OBJECT_NO_ATTRIBUTES_WARNING \
+    Q_DECL_HIDDEN static void qt_static_metacall(QObject *, QMetaObject::Call, int, void **);
 
 /* qmake ignore Q_OBJECT */
 #define Q_OBJECT \
@@ -83,33 +129,35 @@ public: \
     virtual int qt_metacall(QMetaObject::Call, int, void **); \
     QT_TR_FUNCTIONS \
 private: \
-    Q_OBJECT_NO_ATTRIBUTES_WARNING \
-    Q_DECL_HIDDEN_STATIC_METACALL static void qt_static_metacall(QObject *, QMetaObject::Call, int, void **); \
+    QT_OBJECT_GADGET_COMMON \
+    QT_DEFINE_TAG_STRUCT(QPrivateSignal); \
     QT_WARNING_POP \
-    struct QPrivateSignal {}; \
     QT_ANNOTATE_CLASS(qt_qobject, "")
 
 /* qmake ignore Q_OBJECT */
 #define Q_OBJECT_FAKE Q_OBJECT QT_ANNOTATE_CLASS(qt_fake, "")
 
 #ifndef QT_NO_META_MACROS
-/* qmake ignore Q_GADGET */
-#undef Q_GADGET
-#define Q_GADGET \
+/* qmake ignore Q_GADGET_EXPORT */
+#define Q_GADGET_EXPORT(...) \
 public: \
-    static const QMetaObject staticMetaObject; \
+    static __VA_ARGS__ const QMetaObject staticMetaObject; \
+    void qt_check_for_QGADGET_macro(); \
     typedef void QtGadgetHelper; \
 private: \
     QT_WARNING_PUSH \
-    Q_OBJECT_NO_ATTRIBUTES_WARNING \
-    Q_DECL_HIDDEN_STATIC_METACALL static void qt_static_metacall(QObject *, QMetaObject::Call, int, void **); \
+    QT_OBJECT_GADGET_COMMON \
     QT_WARNING_POP \
     QT_ANNOTATE_CLASS(qt_qgadget, "") \
     /*end*/
 
-/* qmake ignore Q_NAMESPACE_EXPORT */
+/* qmake ignore Q_GADGET */
+#define Q_GADGET Q_GADGET_EXPORT()
+
+    /* qmake ignore Q_NAMESPACE_EXPORT */
 #define Q_NAMESPACE_EXPORT(...) \
     extern __VA_ARGS__ const QMetaObject staticMetaObject; \
+    template <typename> static constexpr auto qt_create_metaobjectdata(); \
     QT_ANNOTATE_CLASS(qt_qnamespace, "") \
     /*end*/
 
@@ -150,66 +198,4 @@ private: \
 #define Q_SLOT Q_SLOT
 #endif //Q_MOC_RUN
 
-#define QML_PRIVATE_NAMESPACE \
-    QT_PREPEND_NAMESPACE(QQmlPrivate)
-
-#define QML_REGISTER_TYPES_AND_REVISIONS \
-    QT_PREPEND_NAMESPACE(qmlRegisterTypesAndRevisions)
-
-#define QML_ELEMENT \
-    Q_CLASSINFO("QML.Element", "auto")
-
-#define QML_ANONYMOUS \
-    Q_CLASSINFO("QML.Element", "anonymous")
-
-#define QML_NAMED_ELEMENT(NAME) \
-    Q_CLASSINFO("QML.Element", #NAME)
-
-#define QML_VALUE_TYPE(NAME) \
-    Q_CLASSINFO("QML.Element", #NAME) \
-    QML_UNCREATABLE("Value types cannot be created.")
-
-#define QML_UNCREATABLE(REASON) \
-    Q_CLASSINFO("QML.Creatable", "false") \
-    Q_CLASSINFO("QML.UncreatableReason", REASON)
-
-#define QML_SEQUENTIAL_CONTAINER(VALUE_TYPE) \
-    Q_CLASSINFO("QML.Sequence", #VALUE_TYPE) \
-    using QmlSequenceValueType = VALUE_TYPE; \
-    enum class QmlIsSequence {yes = true}; \
-    template<typename, typename> friend struct QML_PRIVATE_NAMESPACE::QmlSequence; \
-    template<typename T, typename... Args> \
-    friend void QML_REGISTER_TYPES_AND_REVISIONS(const char *uri, int versionMajor, QList<int> *);
-
-#define QML_ADDED_IN_VERSION(MAJOR, MINOR) \
-    Q_CLASSINFO("QML.AddedInVersion", Q_REVISION(MAJOR, MINOR))
-
-#define QML_EXTRA_VERSION(MAJOR, MINOR) \
-    Q_CLASSINFO("QML.ExtraVersion", Q_REVISION(MAJOR, MINOR))
-
-#define QML_REMOVED_IN_VERSION(MAJOR, MINOR) \
-    Q_CLASSINFO("QML.RemovedInVersion", Q_REVISION(MAJOR, MINOR))
-
-#define QML_ATTACHED(ATTACHED_TYPE) \
-    Q_CLASSINFO("QML.Attached", #ATTACHED_TYPE) \
-    using QmlAttachedType = ATTACHED_TYPE; \
-    template<class, class, bool> friend struct QML_PRIVATE_NAMESPACE::QmlAttached; \
-    template<class> friend struct QML_PRIVATE_NAMESPACE::QmlAttachedAccessor;
-
-#define QML_EXTENDED_NAMESPACE(EXTENDED_NAMESPACE) \
-    Q_CLASSINFO("QML.Extended", #EXTENDED_NAMESPACE) \
-    static constexpr const QMetaObject *qmlExtendedNamespace() { return &EXTENDED_NAMESPACE::staticMetaObject; } \
-    template<class, class> friend struct QML_PRIVATE_NAMESPACE::QmlExtendedNamespace; \
-    template<typename T, typename... Args> \
-    friend void QML_REGISTER_TYPES_AND_REVISIONS(const char *uri, int versionMajor, QList<int> *);
-
-#define QML_FOREIGN_NAMESPACE(FOREIGN_NAMESPACE) \
-    Q_CLASSINFO("QML.Foreign", #FOREIGN_NAMESPACE)
-
-#define QML_IMPLEMENTS_INTERFACES(INTERFACES) \
-    Q_INTERFACES(INTERFACES) \
-    enum class QmlIsInterface {yes = false}; \
-    template<typename, typename> friend struct QML_PRIVATE_NAMESPACE::QmlInterface;
-
-#define QML_CUSTOMPARSER Q_CLASSINFO("QML.HasCustomParser", "true")
 )-";
