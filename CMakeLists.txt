@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.11)
+cmake_minimum_required(VERSION 3.13...4.2)
 project(smokegenerator)
 
 if (NOT SMOKE_QT_VERSION)
