@@ -1,29 +1,8 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.13...4.2)
 project(smokegenerator)
 
-# Force MSVC runtime to be consistent across all targets (prevents heap/CRT mismatches)
-if (MSVC)
-    # Prefer to set a sensible default for the MSVC runtime that matches the
-    # build type instead of forcing the Debug CRT for all configurations.
-    # Allow callers to override by passing -DCMAKE_MSVC_RUNTIME_LIBRARY on
-    # the command line or via a superproject.
-    if (NOT DEFINED CMAKE_MSVC_RUNTIME_LIBRARY)
-        if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-            set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDebugDLL" CACHE STRING "MSVC runtime library" FORCE)
-        else()
-            set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDLL" CACHE STRING "MSVC runtime library" FORCE)
-        endif()
-    endif()
-endif ()
-
 if (NOT SMOKE_QT_VERSION)
-        # Require Qt6 only. Qt5 is not supported.
-        find_package(Qt6 COMPONENTS Core Xml QUIET)
-        if (Qt6_FOUND)
-                set(SMOKE_QT_VERSION 6)
-        else()
-                message(FATAL_ERROR "Qt6 is required; Qt5 is not supported. Please install Qt6 and add its installation prefix to CMAKE_PREFIX_PATH or set Qt6_DIR.")
-        endif()
+    set(SMOKE_QT_VERSION 6)
 endif()
 set(QT_VERSION Qt${SMOKE_QT_VERSION})
 
@@ -56,22 +35,6 @@ if (NOT LIB_INSTALL_DIR)
     set (LIB_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/lib${LIB_SUFFIX})
 endif (NOT LIB_INSTALL_DIR)
 
-if(NOT DEFINED LLVM_VERSION_MAJOR)
-    # Older/newer LLVM cmake may expose LLVM_PACKAGE_VERSION instead
-    if(DEFINED LLVM_PACKAGE_VERSION_MAJOR)
-        set(LLVM_VERSION_MAJOR ${LLVM_PACKAGE_VERSION_MAJOR})
-    else()
-        # Allow a user override for the major version if detection fails
-        option(FORCE_LLVM_MAJOR_VERSION "Force LLVM major version number" "")
-        if(FORCE_LLVM_MAJOR_VERSION)
-            set(LLVM_VERSION_MAJOR ${FORCE_LLVM_MAJOR_VERSION})
-        else()
-            message(WARNING "LLVM major version not detected; defaulting to 19 for compatibility")
-            set(LLVM_VERSION_MAJOR 19)
-        endif()
-    endif()
-endif()
-
 add_compile_definitions(LLVM_VERSION=${LLVM_VERSION_MAJOR})
 
 include_directories(${CMAKE_BINARY_DIR})
@@ -101,13 +64,22 @@ ENDIF("${isSystemDir}" STREQUAL "-1")
 configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/config.h.in config.h @ONLY )
 
 # Embed the clang header into the binary:
-#file(GLOB BUILTINS_HEADERS "${LLVM_INSTALL_PREFIX}/lib/clang/${LLVM_PACKAGE_VERSION}/include/*.h")
-#foreach(BUILTIN_HEADER ${BUILTINS_HEADERS})
-#    file(READ ${BUILTIN_HEADER} BINARY_DATA HEX)
-#    string(REGEX REPLACE "(..)" "\\\\x\\1" BINARY_DATA "${BINARY_DATA}")
-#    string(REPLACE "${LLVM_INSTALL_PREFIX}/lib/clang/${LLVM_VERSION}/include/" "/builtins/" FN "${BUILTIN_HEADER}"  )
-#    set(EMBEDDED_DATA "${EMBEDDED_DATA} { \"${FN}\" , \"${BINARY_DATA}\" } , ")
-#endforeach()
+find_path(CLANG_HEADERS_PATH
+    NAMES stdint.h
+    PATHS
+        "${LLVM_INSTALL_PREFIX}/lib/clang/${LLVM_VERSION_MAJOR}.${LLVM_VERSION_MINOR}.${LLVM_VERSION_PATCH}${LLVM_VERSION_SUFFIX}/include/"
+        "${LLVM_INSTALL_PREFIX}/lib/clang/${LLVM_VERSION_MAJOR}.${LLVM_VERSION_MINOR}.${LLVM_VERSION_PATCH}/include/"
+        "${LLVM_INSTALL_PREFIX}/lib/clang/${LLVM_VERSION_MAJOR}.${LLVM_VERSION_MINOR}/include/"
+        "${LLVM_INSTALL_PREFIX}/lib/clang/${LLVM_VERSION_MAJOR}/include/"
+    NO_DEFAULT_PATH
+)
+file(GLOB BUILTINS_HEADERS "${CLANG_HEADERS_PATH}/*.h")
+foreach(BUILTIN_HEADER ${BUILTINS_HEADERS})
+    file(READ ${BUILTIN_HEADER} BINARY_DATA HEX)
+    string(REGEX REPLACE "(..)" "\\\\x\\1" BINARY_DATA "${BINARY_DATA}")
+    string(REPLACE "${CLANG_HEADERS_PATH}/" "/builtins/" FN "${BUILTIN_HEADER}"  )
+    string(APPEND EMBEDDED_DATA "  { \"${FN}\" , \"${BINARY_DATA}\" },\n")
+endforeach()
 
 configure_file(embedded_includes.h.in embedded_includes.h)
 
@@ -126,7 +98,7 @@ llvm_map_components_to_libnames(
 
 target_link_libraries(smokegen
     ${QT_VERSION}::Core
-    ${QT_VERSION}::Xml
+    Qt6::Xml
     clangAST
     clangAnalysis
     clangBasic
@@ -164,11 +136,7 @@ set_property(
     PROPERTY COMPILE_FLAGS -fno-rtti
 )
 
-# Ensure exceptions are enabled for smokegen sources. Some toolchains
-# (or superproject settings) may disable exceptions globally; smokegen
-# relies on exceptions in a few places (try/catch). Explicitly enable
-# exceptions for the target when using Clang or MSVC.
-if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "MSVC" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     if (MSVC)
         # MSVC uses /EHsc for standard exception handling
         target_compile_options(smokegen PRIVATE /EHsc)
@@ -178,11 +146,7 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "MSV
     endif()
 endif()
 
-if(MSVC)
-    # MSVC can hit the object file section limit when translating large
-    # sources; enable /bigobj to increase the limit and avoid C1128.
-    target_compile_options(smokegen PRIVATE /bigobj)
-endif()
+
 
 install(TARGETS smokegen LIBRARY DESTINATION ${LIB_INSTALL_DIR}
     ARCHIVE DESTINATION ${LIB_INSTALL_DIR}
@@ -192,9 +156,6 @@ if (WIN32)
     target_link_libraries(smokegen
         version
     )
-
-    # Prevent windows.h from defining min/max macros which break C++ headers
-    target_compile_definitions(smokegen PRIVATE NOMINMAX)
 
     # Copy Qt dlls to the build directory, so the generator works without
     # installation

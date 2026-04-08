@@ -95,11 +95,10 @@ void SmokeClassFiles::write(const QList<QString>& keys)
         // include the files in the correct order, so manually include them in _smoke.h
         fileOut << "\n#include <smoke.h>\n#include <" << Options::module << "_smoke.h>\n";
 
-#ifdef WIN32
+#ifdef _WIN32
 	    fileOut << "\n#include <windows.h>\n";
 #endif
 
-        fileOut << "\n#include <windows.h>\n";
         // Ensure module-wide helper includes (full type definitions) are available in each x_*.cpp
         // QtCore keeps a curated header to pull in forward-declared types like QModelIndex.
         if (Options::module.startsWith("qt6core")) {
