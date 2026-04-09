@@ -521,8 +521,11 @@ void SmokeClassFiles::writeClass(QTextStream& out, const Class* klass, const QSt
         out << "        // set the smoke binding\n";
         out << "        _binding = (SmokeBinding*)x[1].s_class;\n";
         out << "    }\n";
-
-        switchOut << "        case 0: xself->x_0(args);\tbreak;\n";
+        for (QString& str : Options::needOpNew) {
+	  if (str.contains(className))
+	    out << "    static void* operator new(std::size_t siz) {  return ::operator new(siz); }\n";
+	}
+	switchOut << "        case 0: xself->x_0(args);\tbreak;\n";
     } else {
         out << "public:\n";
     }

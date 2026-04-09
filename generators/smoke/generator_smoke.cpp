@@ -51,6 +51,7 @@ bool Options::qtMode = false;
 QList<QRegularExpression> Options::excludeExpressions;
 QList<QRegularExpression> Options::includeFunctionNames;
 QList<QRegularExpression> Options::includeFunctionSignatures;
+QStringList Options::needOpNew;
 
 static void showUsage()
 {
@@ -205,6 +206,19 @@ int generate()
                       Options::includeFunctionSignatures << QRegularExpression(elem.text());
                     }
                     function = function.nextSibling();
+                }
+            } else if (elem.tagName() == "needOpNew") {
+                QDomNode klass = elem.firstChild();
+                while (!klass.isNull()) {
+                    QDomElement elem = klass.toElement();
+                    if (elem.isNull()) {
+                        klass = klass.nextSibling();
+                        continue;
+                    }
+                    if (elem.tagName() == "class") {
+                        Options::needOpNew << elem.text();
+                    }
+                    klass = klass.nextSibling();
                 }
             }
             node = node.nextSibling();

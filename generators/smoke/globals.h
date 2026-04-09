@@ -61,6 +61,7 @@ struct Options
     static bool typeExcluded(const QString& typeName);
     static bool functionNameIncluded(const QString& fnName);
     static bool functionSignatureIncluded(const QString& sig);
+    static QStringList needOpNew;
 };
 
 struct SmokeDataFile
