@@ -980,7 +980,7 @@ bool Options::typeExcluded(const QString& typeName)
 {
   foreach (const QRegularExpression& exp, Options::excludeExpressions) {
     if (exp.match(typeName,0,QRegularExpression::MatchType::NormalMatch,
-                  QRegularExpression::AnchoredMatchOption).hasMatch())
+                  QRegularExpression::AnchorAtOffsetMatchOption).hasMatch())
             return true;
     }
     return false;
@@ -989,7 +989,7 @@ bool Options::typeExcluded(const QString& typeName)
 bool Options::functionNameIncluded(const QString& fnName) {
   foreach (const QRegularExpression& exp, Options::includeFunctionNames) {
     if (exp.match(fnName,0,QRegularExpression::MatchType::NormalMatch,
-                  QRegularExpression::AnchoredMatchOption).hasMatch())
+                  QRegularExpression::AnchorAtOffsetMatchOption).hasMatch())
             return true;
     }
     return false;
@@ -998,7 +998,7 @@ bool Options::functionNameIncluded(const QString& fnName) {
 bool Options::functionSignatureIncluded(const QString& sig) {
   foreach (const QRegularExpression& exp, Options::includeFunctionNames) {
     if (exp.match(sig,0,QRegularExpression::MatchType::NormalMatch,
-                  QRegularExpression::AnchoredMatchOption).hasMatch())
+                  QRegularExpression::AnchorAtOffsetMatchOption).hasMatch())
             return true;
     }
     return false;
